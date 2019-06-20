@@ -1,0 +1,425 @@
+---
+title: "Questão 8"
+author: "Guilherme Artoni RA 160318"
+date: "June 15, 2019"
+output: pdf_document
+---
+\section{Questão 8}
+
+$$Y_i = \beta _0 + \beta _1 (x_i - \overline{x}) + \xi _i $$
+\subsection{Item (a)}
+$$\xi_i \overset{\small{iid}}{\sim} \cal{N} (0, 4)$$
+```{r}
+x30 <- runif(30, 5, 20) # Gera os valores de X para uma amostra de tamanho 30
+x30.mean <- mean(x30) # Calcula a média de X para uma amostra de tamanho 30
+dif.x30.x30mean <- x30 - x30.mean # Calcula os desvios dos xi's em relação a média. 
+
+x50 <- runif(50, 5, 20) # Gera os valores de X para uma amostra de tamanho 50
+x50.mean <- mean(x50) # Calcula a média de X para uma amostra de tamanho 30
+dif.x50.x50mean <- x50 - x50.mean # Calcula os desvios dos xi's em relação a média.
+
+x100 <- runif(100, 5, 20) # Gera os valores de X para uma amostra de tamanho 100
+x100.mean <- mean(x100) # Calcula a média de X para uma amostra de tamanho 100
+dif.x100.x100mean <- x100 - x100.mean # Calcula os desvios dos xi's em relação a média.
+```
+
+```{r}
+# Gera os valores de Y para uma amostra de tamanho 30
+y30a <- matrix(nrow = 30, ncol = 100)
+for (i in 1:100) {
+    y30a[,i] <- 1 + 1.5*dif.x30.x30mean + rnorm(30, 0, 4)
+}
+
+# Gera os valores de Y para uma amostra de tamanho 50
+y50a <- matrix(nrow = 50, ncol = 100)
+for (i in 1:100) {
+    y50a[,i] <- 1 + 1.5*dif.x50.x50mean + rnorm(50, 0, 4)
+}
+
+# Gera os valores de Y para uma amostra de tamanho 100
+y100a <- matrix(nrow = 100, ncol = 100)
+for (i in 1:100) {
+    y100a[,i] <- 1 + 1.5*dif.x100.x100mean + rnorm(100, 0, 4)
+}
+```
+
+```{r}
+# Nomea as colunas dos Y's
+colnames(y30a) <- paste("y30a", 1:100, sep = "")
+colnames(y50a) <- paste("y50a", 1:100, sep = "")
+colnames(y100a) <- paste("y100a", 1:100, sep = "")
+```
+
+```{r}
+# Ajusta todos os modelos da simulação para as amostras de tamanho 30
+mnih30a <- list()
+for (i in 1:100) {
+ mnih30a[[i]] <- lm(y30a[,i] ~ dif.x30.x30mean) 
+}
+
+# Ajusta todos os modelos da simulação para as amostras de tamanho 50
+mnih50a <- list()
+for (i in 1:100) {
+ mnih50a[[i]] <- lm(y50a[,i] ~ dif.x50.x50mean) 
+}
+
+# Ajusta todos os modelos da simulação para as amostras de tamanho 100
+mnih100a <- list()
+for (i in 1:100) {
+ mnih100a[[i]] <- lm(y100a[,i] ~ dif.x100.x100mean) 
+}
+```
+
+```{r}
+# Armazena as estimativas dos parâmetros para as amostras de tamanho 30
+beta030a <- c()
+beta130a <- c()
+for (i in 1:100) {
+  beta030a[i] <- mnih30a[[i]][[1]][[1]]
+  beta130a[i] <- mnih30a[[i]][[1]][[2]]
+}
+
+# Armazena as estimativas dos parâmetros para as amostras de tamanho 50
+beta050a <- c()
+beta150a <- c()
+for (i in 1:100) {
+  beta050a[i] <- mnih50a[[i]][[1]][[1]]
+  beta150a[i] <- mnih50a[[i]][[1]][[2]]
+}
+
+# Armazena as estimativas dos parâmetros para as amostras de tamanho 100
+beta0100a <- c()
+beta1100a <- c()
+for (i in 1:100) {
+  beta0100a[i] <- mnih100a[[i]][[1]][[1]]
+  beta1100a[i] <- mnih100a[[i]][[1]][[2]]
+}
+```
+
+```{r}
+# Armazena os intervalos de confiança de 95% para as estimativas do beta0 e beta1 para as amostras de tamanho 30
+cibeta030a <- matrix(nrow = 100, ncol = 2)
+cibeta130a <- matrix(nrow = 100, ncol = 2)
+colnames(cibeta030a) <- c("2,5%", "97,5%")
+colnames(cibeta130a) <- c("2,5%", "97,5%")
+rownames(cibeta030a) <- paste("y30a", 1:100, sep = "")
+rownames(cibeta130a) <- paste("y30a", 1:100, sep = "")
+for (i in 1:100) {
+  aux <- confint(mnih30a[[i]])
+  cibeta030a[i,1] <- aux[1,1]
+  cibeta030a[i,2] <- aux[1,2]
+  cibeta130a[i,1] <- aux[2,1]
+  cibeta130a[i,2] <- aux[2,2]
+}
+
+# Armazena os intervalos de confiança de 95% para as estimativas do beta0 e beta1 para as amostras de tamanho 50
+cibeta050a <- matrix(nrow = 100, ncol = 2)
+cibeta150a <- matrix(nrow = 100, ncol = 2)
+colnames(cibeta050a) <- c("2,5%", "97,5%")
+colnames(cibeta150a) <- c("2,5%", "97,5%")
+rownames(cibeta050a) <- paste("y50a", 1:100, sep = "")
+rownames(cibeta150a) <- paste("y50a", 1:100, sep = "")
+for (i in 1:100) {
+  aux <- confint(mnih50a[[i]])
+  cibeta050a[i,1] <- aux[1,1]
+  cibeta050a[i,2] <- aux[1,2]
+  cibeta150a[i,1] <- aux[2,1]
+  cibeta150a[i,2] <- aux[2,2]
+}
+
+# Armazena os intervalos de confiança de 95% para as estimativas do beta0 e beta1 para as amostras de tamanho 100
+cibeta0100a <- matrix(nrow = 100, ncol = 2)
+cibeta1100a <- matrix(nrow = 100, ncol = 2)
+colnames(cibeta0100a) <- c("2,5%", "97,5%")
+colnames(cibeta1100a) <- c("2,5%", "97,5%")
+rownames(cibeta0100a) <- paste("y100a", 1:100, sep = "")
+rownames(cibeta1100a) <- paste("y100a", 1:100, sep = "")
+for (i in 1:100) {
+  aux <- confint(mnih100a[[i]])
+  cibeta0100a[i,1] <- aux[1,1]
+  cibeta0100a[i,2] <- aux[1,2]
+  cibeta1100a[i,1] <- aux[2,1]
+  cibeta1100a[i,2] <- aux[2,2]
+}
+```
+
+\subsection{Item b}
+$$\cal{V}(\xi_i) = \sigma^2x_i$$
+
+```{r}
+# Gera os valores de Y para uma amostra de tamanho 30
+y30b <- matrix(nrow = 30, ncol = 100)
+for (i in 1:100) {
+    y30b[,i] <- 1 + 1.5*dif.x30.x30mean + rnorm(30, 0, 4*x30)
+}
+
+# Gera os valores de Y para uma amostra de tamanho 50
+y50b <- matrix(nrow = 50, ncol = 100)
+for (i in 1:100) {
+    y50b[,i] <- 1 + 1.5*dif.x50.x50mean + rnorm(50, 0, 4*x50)
+}
+
+# Gera os valores de Y para uma amostra de tamanho 100
+y100b <- matrix(nrow = 100, ncol = 100)
+for (i in 1:100) {
+    y100b[,i] <- 1 + 1.5*dif.x100.x100mean + rnorm(100, 0, 4*x100)
+}
+```
+
+```{r}
+# Nomea as colunas dos Y's
+colnames(y30b) <- paste("y30b", 1:100, sep = "")
+colnames(y50b) <- paste("y50b", 1:100, sep = "")
+colnames(y100b) <- paste("y100b", 1:100, sep = "")
+```
+
+```{r}
+# Ajusta todos os modelos da simulação para as amostras de tamanho 30
+mnih30b <- list()
+for (i in 1:100) {
+ mnih30b[[i]] <- lm(y30b[,i] ~ dif.x30.x30mean) 
+}
+
+# Ajusta todos os modelos da simulação para as amostras de tamanho 50
+mnih50b <- list()
+for (i in 1:100) {
+ mnih50b[[i]] <- lm(y50b[,i] ~ dif.x50.x50mean) 
+}
+
+# Ajusta todos os modelos da simulação para as amostras de tamanho 100
+mnih100b <- list()
+for (i in 1:100) {
+ mnih100b[[i]] <- lm(y100b[,i] ~ dif.x100.x100mean) 
+}
+```
+
+```{r}
+# Armazena as estimativas dos parâmetros para as amostras de tamanho 30
+beta030b <- c()
+beta130b <- c()
+for (i in 1:100) {
+  beta030b[i] <- mnih30b[[i]][[1]][[1]]
+  beta130b[i] <- mnih30b[[i]][[1]][[2]]
+}
+
+# Armazena as estimativas dos parâmetros para as amostras de tamanho 50
+beta050b <- c()
+beta150b <- c()
+for (i in 1:100) {
+  beta050b[i] <- mnih50b[[i]][[1]][[1]]
+  beta150b[i] <- mnih50b[[i]][[1]][[2]]
+}
+
+# Armazena as estimativas dos parâmetros para as amostras de tamanho 100
+beta0100b <- c()
+beta1100b <- c()
+for (i in 1:100) {
+  beta0100b[i] <- mnih100b[[i]][[1]][[1]]
+  beta1100b[i] <- mnih100b[[i]][[1]][[2]]
+}
+```
+
+```{r}
+# Armazena os intervalos de confiança de 95% para as estimativas do beta0 e beta1 para as amostras de tamanho 30
+cibeta030b <- matrix(nrow = 100, ncol = 2)
+cibeta130b <- matrix(nrow = 100, ncol = 2)
+colnames(cibeta030b) <- c("2,5%", "97,5%")
+colnames(cibeta130b) <- c("2,5%", "97,5%")
+rownames(cibeta030b) <- paste("y30b", 1:100, sep = "")
+rownames(cibeta130b) <- paste("y30b", 1:100, sep = "")
+for (i in 1:100) {
+  aux <- confint(mnih30b[[i]])
+  cibeta030b[i,1] <- aux[1,1]
+  cibeta030b[i,2] <- aux[1,2]
+  cibeta130b[i,1] <- aux[2,1]
+  cibeta130b[i,2] <- aux[2,2]
+}
+
+# Armazena os intervalos de confiança de 95% para as estimativas do beta0 e beta1 para as amostras de tamanho 50
+cibeta050b <- matrix(nrow = 100, ncol = 2)
+cibeta150b <- matrix(nrow = 100, ncol = 2)
+colnames(cibeta050b) <- c("2,5%", "97,5%")
+colnames(cibeta150b) <- c("2,5%", "97,5%")
+rownames(cibeta050b) <- paste("y50b", 1:100, sep = "")
+rownames(cibeta150b) <- paste("y50b", 1:100, sep = "")
+for (i in 1:100) {
+  aux <- confint(mnih50b[[i]])
+  cibeta050b[i,1] <- aux[1,1]
+  cibeta050b[i,2] <- aux[1,2]
+  cibeta150b[i,1] <- aux[2,1]
+  cibeta150b[i,2] <- aux[2,2]
+}
+
+# Armazena os intervalos de confiança de 95% para as estimativas do beta0 e beta1 para as amostras de tamanho 100
+cibeta0100b <- matrix(nrow = 100, ncol = 2)
+cibeta1100b <- matrix(nrow = 100, ncol = 2)
+colnames(cibeta0100b) <- c("2,5%", "97,5%")
+colnames(cibeta1100b) <- c("2,5%", "97,5%")
+rownames(cibeta0100b) <- paste("y100b", 1:100, sep = "")
+rownames(cibeta1100b) <- paste("y100b", 1:100, sep = "")
+for (i in 1:100) {
+  aux <- confint(mnih100b[[i]])
+  cibeta0100b[i,1] <- aux[1,1]
+  cibeta0100b[i,2] <- aux[1,2]
+  cibeta1100b[i,1] <- aux[2,1]
+  cibeta1100b[i,2] <- aux[2,2]
+}
+```
+
+\subsection{Item c}
+$$\xi_i \overset{\small{iid}}{\sim} t_{(6)}$$
+
+```{r}
+# Gera os valores de Y para uma amostra de tamanho 30
+y30c <- matrix(nrow = 30, ncol = 100)
+for (i in 1:100) {
+    y30c[,i] <- 1 + 1.5*dif.x30.x30mean + rt(30, 6, 6/4)
+}
+
+# Gera os valores de Y para uma amostra de tamanho 50
+y50c <- matrix(nrow = 50, ncol = 100)
+for (i in 1:100) {
+    y50c[,i] <- 1 + 1.5*dif.x50.x50mean + rt(50, 6, 6/4)
+}
+
+# Gera os valores de Y para uma amostra de tamanho 100
+y100c <- matrix(nrow = 100, ncol = 100)
+for (i in 1:100) {
+    y100c[,i] <- 1 + 1.5*dif.x100.x100mean + rt(100, 6, 6/4)
+}
+```
+
+```{r}
+# Nomea as colunas dos Y's
+colnames(y30c) <- paste("y30c", 1:100, sep = "")
+colnames(y50c) <- paste("y50c", 1:100, sep = "")
+colnames(y100c) <- paste("y100c", 1:100, sep = "")
+```
+
+```{r}
+# Ajusta todos os modelos da simulação para as amostras de tamanho 30
+mnih30c <- list()
+for (i in 1:100) {
+ mnih30c[[i]] <- lm(y30c[,i] ~ dif.x30.x30mean) 
+}
+
+# Ajusta todos os modelos da simulação para as amostras de tamanho 50
+mnih50c <- list()
+for (i in 1:100) {
+ mnih50c[[i]] <- lm(y50c[,i] ~ dif.x50.x50mean) 
+}
+
+# Ajusta todos os modelos da simulação para as amostras de tamanho 100
+mnih100c <- list()
+for (i in 1:100) {
+ mnih100c[[i]] <- lm(y100c[,i] ~ dif.x100.x100mean) 
+}
+```
+
+```{r}
+# Armazena as estimativas dos parâmetros para as amostras de tamanho 30
+beta030c <- c()
+beta130c <- c()
+for (i in 1:100) {
+  beta030c[i] <- mnih30c[[i]][[1]][[1]]
+  beta130c[i] <- mnih30c[[i]][[1]][[2]]
+}
+
+# Armazena as estimativas dos parâmetros para as amostras de tamanho 50
+beta050c <- c()
+beta150c <- c()
+for (i in 1:100) {
+  beta050c[i] <- mnih50c[[i]][[1]][[1]]
+  beta150c[i] <- mnih50c[[i]][[1]][[2]]
+}
+
+# Armazena as estimativas dos parâmetros para as amostras de tamanho 100
+beta0100c <- c()
+beta1100c <- c()
+for (i in 1:100) {
+  beta0100c[i] <- mnih100c[[i]][[1]][[1]]
+  beta1100c[i] <- mnih100c[[i]][[1]][[2]]
+}
+```
+
+```{r}
+# Armazena os intervalos de confiança de 95% para as estimativas do beta0 e beta1 para as amostras de tamanho 30
+cibeta030c <- matrix(nrow = 100, ncol = 2)
+cibeta130c <- matrix(nrow = 100, ncol = 2)
+colnames(cibeta030c) <- c("2,5%", "97,5%")
+colnames(cibeta130c) <- c("2,5%", "97,5%")
+rownames(cibeta030c) <- paste("y30c", 1:100, sep = "")
+rownames(cibeta130c) <- paste("y30c", 1:100, sep = "")
+for (i in 1:100) {
+  aux <- confint(mnih30c[[i]])
+  cibeta030c[i,1] <- aux[1,1]
+  cibeta030c[i,2] <- aux[1,2]
+  cibeta130c[i,1] <- aux[2,1]
+  cibeta130c[i,2] <- aux[2,2]
+}
+
+# Armazena os intervalos de confiança de 95% para as estimativas do beta0 e beta1 para as amostras de tamanho 50
+cibeta050c <- matrix(nrow = 100, ncol = 2)
+cibeta150c <- matrix(nrow = 100, ncol = 2)
+colnames(cibeta050c) <- c("2,5%", "97,5%")
+colnames(cibeta150c) <- c("2,5%", "97,5%")
+rownames(cibeta050c) <- paste("y50c", 1:100, sep = "")
+rownames(cibeta150c) <- paste("y50c", 1:100, sep = "")
+for (i in 1:100) {
+  aux <- confint(mnih50c[[i]])
+  cibeta050c[i,1] <- aux[1,1]
+  cibeta050c[i,2] <- aux[1,2]
+  cibeta150c[i,1] <- aux[2,1]
+  cibeta150c[i,2] <- aux[2,2]
+}
+
+# Armazena os intervalos de confiança de 95% para as estimativas do beta0 e beta1 para as amostras de tamanho 100
+cibeta0100c <- matrix(nrow = 100, ncol = 2)
+cibeta1100c <- matrix(nrow = 100, ncol = 2)
+colnames(cibeta0100c) <- c("2,5%", "97,5%")
+colnames(cibeta1100c) <- c("2,5%", "97,5%")
+rownames(cibeta0100c) <- paste("y100c", 1:100, sep = "")
+rownames(cibeta1100c) <- paste("y100c", 1:100, sep = "")
+for (i in 1:100) {
+  aux <- confint(mnih100c[[i]])
+  cibeta0100c[i,1] <- aux[1,1]
+  cibeta0100c[i,2] <- aux[1,2]
+  cibeta1100c[i,1] <- aux[2,1]
+  cibeta1100c[i,2] <- aux[2,2]
+}
+```
+
+\subsection{Item d}
+$$\cal{V}(\xi_i) = 4 \quad \text{e} \quad \text{Corre}(\xi_i, \ \xi_j) = \text{0,90} \quad \text{para} \quad i  \neq j $$
+```{r}
+# Gera os vetores de médias
+mu.30 <- rep(0, times=30)
+mu.50 <- rep(0, times=50)
+mu.100 <- rep(0, times=100)
+
+# Gera as matrizes de variâncias e covariâncias
+var.cov.matrix.n30 <- matrix(3.6, nrow = 30, ncol = 30)
+diag(var.cov.matrix.n30) <- 4
+var.cov.matrix.n50 <- matrix(3.6, nrow = 50, ncol = 50)
+diag(var.cov.matrix.n50) <- 4
+var.cov.matrix.n100 <- matrix(3.6, nrow = 100, ncol = 100)
+diag(var.cov.matrix.n100) <- 4
+
+# Gera os 100 valores de Y para uma normal multivariada com vetor de médias e matriz de covariâncias dadas acima
+library(MASS)
+y30d <- mvrnorm(100, mu.30, var.cov.matrix.n30)
+y50d <- mvrnorm(100, mu.50, var.cov.matrix.n50)
+y100d <- mvrnorm(1, mu.100, var.cov.matrix.n100)
+```
+
+```{r}
+# Nomea as colunas de Y
+colnames(y30d) <- paste("y30d", 1:100, sep = "")
+colnames(y50d) <- paste("y50d", 1:100, sep = "")
+colnames(y100d) <- paste("y100d", 1:100, sep = "")
+```
+
+
+
+
+
