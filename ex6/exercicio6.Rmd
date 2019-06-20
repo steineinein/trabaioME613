@@ -1,0 +1,212 @@
+---
+title: 'Questão 6'
+output:
+  pdf_document:
+    fig_crop: no
+fontsize: 10pt
+sansfont: Times
+documentclass: article
+geometry: 
+ - a4paper
+ - textwidth=18cm
+ - textheight=21cm
+header-includes:
+  - \usepackage[utf8]{inputenc}
+  - \usepackage[brazil, english, portuguese]{babel}
+  - \usepackage[utf8]{inputenc}
+  - \usepackage[T1]{fontenc}
+  - \usepackage[fixlanguage]{babelbib}
+  - \usepackage{times}
+
+  - \usepackage{graphicx}
+  - \usepackage{wrapfig}
+  - \usepackage{pdfpages}
+  
+  - \usepackage{amsfonts}
+  - \usepackage{amssymb}
+  - \usepackage{amsmath}
+  
+  - \usepackage{fancyhdr}
+  - \usepackage{subcaption}
+  - \usepackage{booktabs}
+  - \usepackage{caption}
+  - \usepackage{float}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, 
+  message = FALSE,
+  warning = FALSE,
+  tidy.opts = list(width.cutoff = 60),
+  tidy = TRUE,
+  digits=3
+  )
+options(
+  OutDec = ",", 
+  knitr.table.format = "latex", 
+  xtable.comment = FALSE
+  )
+ggplot2::theme_set(ggplot2::theme_bw())
+```
+
+```{r}
+library(tidyverse)
+library(magrittr)
+library(gridExtra)
+library(corrplot)
+library(ggfortify)
+library(broom)
+library(kableExtra)
+source("../diag_norm.R")
+source("../envel_norm.R")
+source("../norm_diag.R")
+source("../anainflu_norm.R")
+source("../cook_hat.R")
+source("../estimate_table.R")
+source("../model_measures.R")
+library(knitr)
+```
+
+# Introdução
+
+Com a intenção de determinar que variáveis influênciam o preço de venda de um imóvel uma amostra de 27 imóveis será analisada. O banco de dados em questão contém as seguintes variáveis: (i) imposto do imóvel (em 100 USD), (ii) érea do terreno (em 1000 pés quadrados), (iii) área construída (em 1000 pés quadrados), (iv) idade da residência (em anos) e (v) preço de venda do imóvel (em 1000 USD). Que podem ser encontrados no site (https://www.ime.unicamp.br/~cnaber/Material_ME613_1S_2019.htm) sob o nome de "imóveis.txt". Para tal análises será usada a metodologia dos modelos lineares homocedásticos, metodologias de verificação da qualidade do ajuste e comparação de modelos apropriado, veja Azevedo (2019). Todas as análises serão feitas com auxílio computacional do R.
+
+# Análise descritiva
+
+Neste problema a variável respostas é o preço de venda e existe quatro variáveis explicativas que são quantitativa. Então será feito um gráfico de dispersão de cada variável explicativa pela resposta e também será análisada a correlação entre elas. Na figura \ref{fig:scatter} observa-se os quatro casos. O preço de venda parece aumentar consoante ao o aumento da área do terreno, porém não parece que uma reta modele muito bem esse aumento. Conforme a área construída cresce o preço de venda também cresce e uma reta parece modelar bem essa tendência. A relação entre o imposto e o preço aparenta ser positiva e também bem modelada por uma reta. Já a idade da residência não parece influenciar o preço de vende. Essas suposições se fortalecem na análise de correlação na figura \ref{fig:cor}, onde observa-se uma alta correlação entre idade, imposto e área construída com o preço de venda.
+
+```{r}
+imoveis <- read.table("imoveis.txt") %>% as_tibble() %>% set_colnames(c("tax", "tA", "cA", "age", "price"))
+```
+
+```{r, fig.cap="\\label{fig:scatter} Comportamento do preço de venda em relação a outras variáveis.", fi.pos = "H"}
+dispersao.imposto.preco <- imoveis %>% ggplot(aes(x = tax, y = price)) + geom_point() +
+  labs(x = "Imposto do imóvel", y = "Preço de venda")
+dispersao.idadevenda.preco <- imoveis %>% ggplot(aes(x = age, y = price)) + geom_point() +
+  labs(x = "Idade da residência", y = "Preço de venda")
+dispersao.areaTerreno.preco <- imoveis %>% ggplot(aes(x = tA, y = price)) + geom_point() +
+  labs(x = "Área do terreno", y = "Preço de venda")
+dispersao.areeConstruida.preco <- imoveis %>% ggplot(aes(x = cA, y = price)) + geom_point() +
+  labs(x = "Área construída", y = "Preço de venda")
+grid.arrange(dispersao.areaTerreno.preco, dispersao.areeConstruida.preco,
+             dispersao.imposto.preco, dispersao.idadevenda.preco)
+```
+
+```{r, fig.cap="\\label{fig:cor} Correlação entre as variáveis", fig.height=3, fig.width=4}
+correlacao <- cor(imoveis)
+corrplot.mixed(correlacao, upper = "ellipse", number.cex = .7, lower.col = "black", upper.col = gray.colors(100))
+```
+
+# Análise inferencial
+
+Considerando as características do problema, o seu objetivos e as análises descritivas, será considerado primeiramente um modelo completo sem intercepto. Já que um imóvel que não possue área, idade ou imposto em teoria não tem valor. Após o modelo completo será considerado um modelo reduzido se necessário.
+
+## Modelo completo
+
+Seja $Y_i$ o valor do preço de venda da i-ésima, onde i = {1,2,...,27} tem-se o seguinte modelo:
+
+$$Y_i = \beta_0x_{0i} + \beta_1x_{1i} + \beta_2x_{2i} + \beta_3x_{3i} + \varepsilon_i$$
+onde $x_{0i}$, $x_{1i}$, $x_{2i}$, $x_{3i}$ são respectivamentes os valores do imposto do ímovel, da área do terreno, da área construída e da idade da residência. Os parâmetros $\beta_0$, $\beta_1$, $\beta_2$, $\beta_3$ são respectivamente o incremento no preço de venda esperado, quando se mantém todos as outras variáveis fixas e se aumenta em uma unidade o imposto, a área do terreno, a área construída e a idade da residência. E $\varepsilon_i$ é a componente aleatória da observação i.
+
+Esse modelo é válido sobre as seguintes suposições: (i) $\varepsilon_i \stackrel{\text{i.i.d}}{\sim} N(0,\sigma^2)$; (ii) as observações são independentes; (iii) e a variância é constante.
+
+### Estimativa
+
+O modelo foi ajustado segundo o método dos mínimos quadrados ordinários e sua significância para o modelo foi determinada a partir de um teste de hipóte utilizando as estatística t. Esse resultados se encontram na tabela \ref{tab:completo}, os paramêtros $\beta_0$ e $\beta_2$ seguem o que foi observados nas análises descritivas e foram significátivos, mas os parâmetros $\beta_1$ e $\beta_3$ não foram significátivos.
+
+```{r}
+imoveis.fit.completo <- imoveis %>% lm(price ~ -1 + tax + tA + cA + age,.)
+tabela.imovel.completo <- imoveis.fit.completo %>% estimate_tibble() %>%
+  kable("latex", booktabs = T, caption = "Estimativa para os parâmetros do modelo completo.") %>% kable_styling(font_size = 10)
+madidas_completo <- model_measures(imoveis.fit.completo)
+```
+
+\begin{table}[t]
+
+\caption{\label{tab:completo}Estimativa para os parâmetros do modelo completo.}
+\centering
+\fontsize{10}{12}\selectfont
+\begin{tabular}{lrrlrl}
+\toprule
+Termo & Estimatica & Erro Padrão & IC (95\%) & Estatística t & p-valor\\
+\midrule
+$\beta_0$ & 2,183 & 0,517 & [ 1,17 ; 3,196 ] & 4,224 & < 0.001\\
+$\beta_1$ & 0,357 & 0,455 & [ -0,535 ; 1,248 ] & 0,784 & 0,441\\
+$\beta_2$ & 13,740 & 2,839 & [ 8,175 ; 19,305 ] & 4,839 & < 0.001\\
+$\beta_3$ & -0,012 & 0,039 & [ -0,089 ; 0,065 ] & -0,311 & 0,759\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+### Diagnóstico
+
+Observando-se os gráficos de resíduos na figura \ref{fig:diagcompleto} não há motivos para duvidar das suposições de indepêndencia dos erros e de homocedasticidade. Já pelo histograma dos resíduos e dos gráficos quantis-quantis parece haver um assimetria, o que é condizendo já que o preço é uma variável positiva.
+
+```{r, fig.cap="\\label{fig:diagcompleto} Diagnóstico do modelo completo.", fig.height=3.5}
+normal_diag(imoveis.fit.completo)
+```
+
+## Modelo reduzido
+
+Como visto no modelo completo algums parâmetros não foram significativos, será feito agora um modelo reduzido. Seja $Y_i$ o valor do preço de venda da i-ésima, onde i = {1,2,...,27} tem-se o seguinte modelo:
+
+$$Y_i = \beta_0x_{0i} + \beta_2x_{2i} + \varepsilon_i$$
+onde $x_{0i}$ e $x_{2i}$ são respectivamentes os valores do imposto do ímovel, da área do terreno, da área construída e da idade da residência. Os parâmetros $\beta_0$ e $\beta_2$ são respectivamente o incremento no preço de venda esperado, quando se mantém todos as outras variáveis fixas e se aumenta em uma unidade o imposto e a área construída. E $\varepsilon_i$ é a componente aleatória da observação i.
+
+Esse modelo é válido sobre as seguintes suposições: (i) $\varepsilon_i \stackrel{\text{i.i.d}}{\sim} N(0,\sigma^2)$; (ii) as observações são independentes; (iii) e a variância é constante.
+
+### Estimativa
+
+```{r}
+imoveis.fit.reduzido <- imoveis %>% lm(price ~ -1 + tax + cA,.)
+tabela.imovel.reduzido <- imoveis.fit.reduzido %>% estimate_tibble() %>%
+  kable("latex", booktabs = T, caption = "Estimativa para os parâmetros do modelo reduzido.") %>% kable_styling(font_size = 10)
+```
+
+Os métodos de estimação são os mesmos usado no modelo completo. Observando-se a tabela \ref{tab:tab:reduzido}, concluí-se que os parâmetros são significativos e fazem sentido para o modelo.
+
+\begin{table}[t]
+
+\caption{\label{tab:reduzido}Estimativa para os parâmetros do modelo reduzido.}
+\centering
+\fontsize{10}{12}\selectfont
+\begin{tabular}{lrrlrl}
+\toprule
+Termo & Estimativa & Erro Padrão & IC (95\%) & Estatística t & p-valor\\
+\midrule
+$\beta_0$ & 2,324 & 0,474 & [ 1,395 ; 3,253 ] & 4,903 & < 0.001\\
+$\beta_2$ & 14,267 & 2,293 & [ 9,773 ; 18,76 ] & 6,223 & < 0.001\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+### Diagnóstico
+
+Através do gráficos de resíduos da figura \ref{fig:diagreduzido} chegamos nas mesma conclusões que para o modelo completo, que as suposições de homecedasticidade e independência dos erros parece razoável, mas que os erros não seguem uma distribuição normal.
+
+```{r, fig.cap="\\label{fig:diagreduzido} Diagnóstico do modelo reduzido.",fig.height=3.5}
+normal_diag(imoveis.fit.reduzido)
+```
+
+## Comparação
+
+Através das medidas de comparação, vistas na tabela \ref{tab:medidas} percebe-se que o modelo reduzido é melhor que o completo, já que em quase todos os casos seu valores são menores. Por isso segue-se a análise apenas com o modelo reduzido.
+
+```{r medidas}
+medidas <- cbind(model_measures(imoveis.fit.completo),model_measures(imoveis.fit.reduzido)) %>%
+  set_colnames(c("Completo", "Reduzido")) %>%
+  kable("latex", caption = "Medidas de comparação do modelo.", booktabs = T) %>% kable_styling(font_size = 10)
+medidas
+``` 
+
+## Influência e Alavanca
+
+Pelo gráficos da figura \ref{fig:influala} percebe-se dois candidatos a pontos de influência ou alavanca, a observação 9 e a 10. O a observação 27 afeta substancialmente as estimativas, ao retirá-la do bando de dados os valores das estimativas se alteraram na ordem de 50%, mas não houve nenhuma alteração em relação as conclusões.
+
+```{r, fig.cap="\\label{fig:influala} Análise de pontos influentes e alavancas.", fig.height=3.5}
+cook_hat(imoveis.fit.reduzido)
+```
+
+# Conclusão
+
