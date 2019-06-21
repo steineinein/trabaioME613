@@ -109,3 +109,11 @@ grid.arrange(boxplot.H.12,boxplot.T.12, ncol = 2)
 grid.arrange(boxplot.H.13,boxplot.T.13, ncol = 2)
 ```
 
+```{r}
+escova_12 <- escova %>% dplyr::select(sexo, ipb_preH, ipb_preT, razaoH, razaoT) %>%
+  gather(tipo, ipb_pre,-sexo, -razaoH, - razaoT) %>% 
+  gather(tipo1, razao, -sexo, -tipo, -ipb_pre) %>%
+  mutate(tipo = if_else(tipo == "ipb_preH", "H", "T")) %>%
+  dplyr::select(-tipo1)
+```
+

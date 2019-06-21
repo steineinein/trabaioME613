@@ -113,7 +113,7 @@ Esse modelo é válido sobre as seguintes suposições: (i) $\varepsilon_i \stac
 
 ### Estimativa
 
-O modelo foi ajustado segundo o método dos mínimos quadrados ordinários e sua significância para o modelo foi determinada a partir de um teste de hipóte utilizando as estatística t. Esse resultados se encontram na tabela \ref{tab:completo}, os paramêtros $\beta_0$ e $\beta_2$ seguem o que foi observados nas análises descritivas e foram significátivos, mas os parâmetros $\beta_1$ e $\beta_3$ não foram significátivos.
+O modelo foi ajustado segundo o método dos mínimos quadrados ordinários e a significância de seus parâmetros foi determinada a partir de um teste de hipótese utilizando as estatística t. Esse resultados se encontram na tabela \ref{tab:completo}, os paramêtros $\beta_0$ e $\beta_2$ seguem o que foi observados nas análises descritivas e foram significátivos, mas os parâmetros $\beta_1$ e $\beta_3$ não foram significátivos.
 
 ```{r}
 imoveis.fit.completo <- imoveis %>% lm(price ~ -1 + tax + tA + cA + age,.)
