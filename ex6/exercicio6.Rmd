@@ -198,7 +198,7 @@ medidas <- cbind(model_measures(imoveis.fit.completo),model_measures(imoveis.fit
   set_colnames(c("Completo", "Reduzido")) %>%
   kable("latex", caption = "Medidas de comparação do modelo.", booktabs = T) %>% kable_styling(font_size = 10)
 medidas
-``` 
+```
 
 ## Influência e Alavanca
 
@@ -210,3 +210,12 @@ cook_hat(imoveis.fit.reduzido)
 
 # Conclusão
 
+Os dois modelos propostos não se ajustaram bem aos dados, muito provavelmente por causa da não normalidade dos dados. Mas nessa classe de modelos opta-se pelo menos pior que aparenta ser o modelo reduzido. Ambos modelos sugerem que conforme o imposto pago aumenta o preço do imóvel também aumenta e que conforme a área construída aumenta o valor do imóvel também aumenta. O ponto influente provavelmente se deve ao fato dado o imposto pago o seu preço de venda é muito baixo do que deveria ser dados a reta, provavelmente algum fator não estuda imfluência esse caso e deve se consultar o pesquisador a respeito dele, ou ao mal ajuste do modelo.
+
+Como o preço é uma variável positiva uma sugestão de melhorias seria usar uma distribuição positiva para modelá-lo, como Gamma ou uma Normal Inversa.
+
+# Referências
+
+Azevedo, C. L. N (2019). Notas de aula sobre Análise de regressão, http://www.ime.unicamp.br/~cnaber/Material_ME613_1S_2019.htm
+
+Paula, G. A. (2013). Modelos de regressão com apoio computacional, versão pré-eliminar, https://www.ime.usp.br/~giapaula/texto_2013.pdf
