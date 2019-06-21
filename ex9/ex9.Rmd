@@ -1,0 +1,84 @@
+---
+title: 'Questão 9'
+output:
+  pdf_document:
+    fig_crop: no
+fontsize: 10pt
+sansfont: Times
+documentclass: article
+geometry: 
+ - a4paper
+ - textwidth=18cm
+ - textheight=21cm
+header-includes:
+  - \usepackage[utf8]{inputenc}
+  - \usepackage[brazil, english, portuguese]{babel}
+  - \usepackage[utf8]{inputenc}
+  - \usepackage[T1]{fontenc}
+  - \usepackage[fixlanguage]{babelbib}
+  - \usepackage{times}
+
+  - \usepackage{graphicx}
+  - \usepackage{wrapfig}
+  - \usepackage{pdfpages}
+  
+  - \usepackage{amsfonts}
+  - \usepackage{amssymb}
+  - \usepackage{amsmath}
+  
+  - \usepackage{fancyhdr}
+  - \usepackage{subcaption}
+  - \usepackage{booktabs}
+  - \usepackage{caption}
+  - \usepackage{float}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, 
+  message = FALSE,
+  warning = FALSE,
+  tidy.opts = list(width.cutoff = 60),
+  tidy = TRUE,
+  digits=3
+  )
+options(
+  OutDec = ",", 
+  knitr.table.format = "latex", 
+  xtable.comment = FALSE
+  )
+ggplot2::theme_set(ggplot2::theme_bw())
+```
+
+```{r}
+library(tidyverse)
+library(magrittr)
+library(gridExtra)
+library(corrplot)
+library(ggfortify)
+library(broom)
+library(kableExtra)
+source("../diag_norm.R")
+source("../envel_norm.R")
+source("../norm_diag.R")
+source("../anainflu_norm.R")
+source("../cook_hat.R")
+source("../estimate_table.R")
+source("../model_measures.R")
+library(knitr)
+```
+
+
+```{r}
+salary <- read_tsv("salary.dat", col_names = c("salary", "sex", "position", "experience"))
+```
+
+```{r}
+salary %>% ggplot(aes(x = position, y =  salary)) + geom_point() + facet_wrap(~ sex)
+```
+
+```{r}
+salary %>% ggplot(aes(x = experience, y =  salary)) + geom_point() + facet_wrap(~ sex)
+```
+
+

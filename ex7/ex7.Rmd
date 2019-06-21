@@ -1,0 +1,111 @@
+---
+title: "Questão 7"
+output:
+  pdf_document:
+    fig_crop: no
+fontsize: 10pt
+sansfont: Times
+documentclass: article
+geometry: 
+ - a4paper
+ - textwidth=18cm
+ - textheight=21cm
+header-includes:
+  - \usepackage[utf8]{inputenc}
+  - \usepackage[brazil, english, portuguese]{babel}
+  - \usepackage[utf8]{inputenc}
+  - \usepackage[T1]{fontenc}
+  - \usepackage[fixlanguage]{babelbib}
+  - \usepackage{times}
+
+  - \usepackage{graphicx}
+  - \usepackage{wrapfig}
+  - \usepackage{pdfpages}
+  
+  - \usepackage{amsfonts}
+  - \usepackage{amssymb}
+  - \usepackage{amsmath}
+  
+  - \usepackage{fancyhdr}
+  - \usepackage{subcaption}
+  - \usepackage{booktabs}
+  - \usepackage{caption}
+  - \usepackage{float}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, 
+  message = FALSE,
+  warning = FALSE,
+  tidy.opts = list(width.cutoff = 60),
+  tidy = TRUE,
+  digits=3
+  )
+options(
+  OutDec = ",", 
+  knitr.table.format = "latex", 
+  xtable.comment = FALSE
+  )
+ggplot2::theme_set(ggplot2::theme_bw())
+```
+
+```{r}
+library(tidyverse)
+library(magrittr)
+library(gridExtra)
+library(corrplot)
+library(ggfortify)
+library(broom)
+library(kableExtra)
+source("../diag_norm.R")
+source("../envel_norm.R")
+source("../norm_diag.R")
+source("../anainflu_norm.R")
+source("../cook_hat.R")
+source("../estimate_table.R")
+source("../model_measures.R")
+library(knitr)
+```
+
+# Introdução
+
+# Análise Descritiva
+
+```{r}
+escova <- read_table("Singer&Andrade1997.txt",
+                     col_names = c("ind", "sexo", "ipb_preH", "ipb_posH", "ipb_preT", "ipb_posT")) %>%
+  mutate(razaoH = ipb_posH/ipb_preH, razaoT = ipb_posT/ipb_preT,
+         razaoH13 = (ipb_posH - ipb_preH)/ipb_preH, razaoT13 = (ipb_posT - ipb_preT)/ipb_preT)
+```
+
+```{r}
+dispersao.H.12 <- escova %>% ggplot(aes(x = ipb_preH, y = razaoH)) + geom_point() + facet_wrap(~ sexo)
+dispersao.T.12 <- escova %>% ggplot(aes(x = ipb_preT, y = razaoT)) + geom_point() + facet_wrap(~ sexo)
+dispersao.H.13 <- escova %>% ggplot(aes(x = ipb_preH, y = razaoH13)) + geom_point() + facet_wrap(~ sexo)
+dispersao.T.13 <- escova %>% ggplot(aes(x = ipb_preT, y = razaoT13)) + geom_point() + facet_wrap(~ sexo)
+```
+
+```{r}
+boxplot.H.12 <- escova %>% ggplot(aes(x = sexo, y = razaoH)) + geom_boxplot()
+boxplot.T.12 <- escova %>% ggplot(aes(x = sexo, y = razaoT)) + geom_boxplot()
+boxplot.H.13 <- escova %>% ggplot(aes(x = sexo, y = razaoH13)) + geom_boxplot()
+boxplot.T.13 <- escova %>% ggplot(aes(x = sexo, y = razaoT13)) + geom_boxplot()
+```
+
+```{r}
+grid.arrange(dispersao.H.12,dispersao.T.12)
+```
+
+```{r}
+grid.arrange(dispersao.H.13,dispersao.T.13)
+```
+
+```{r}
+grid.arrange(boxplot.H.12,boxplot.T.12, ncol = 2)
+```
+
+```{r}
+grid.arrange(boxplot.H.13,boxplot.T.13, ncol = 2)
+```
+
