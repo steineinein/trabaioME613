@@ -58,6 +58,7 @@ library(corrplot)
 library(ggfortify)
 library(broom)
 library(kableExtra)
+library(formattable)
 source("../diag_norm.R")
 source("../envel_norm.R")
 source("../norm_diag.R")
@@ -68,17 +69,96 @@ source("../model_measures.R")
 library(knitr)
 ```
 
+# Introdução
+
+Para uma amostra aleatória de 220 executivos (Foster, Stine e Waterman, 1998, pgs. 180-188), queremos modelar o salário anual (em mil USD). O salário será modelado pelas variáveis explicativas: sexo, anos de experiência no cargo e posição na empresa. Esperamos, dado as caraterísticas da época, que os homens ganhem mais que as mulheres e que posições mais altas sejam melhor remuneradas.
+
+# Análise descritiva
+
+Como suspeitamos, há um relação positiva entre a posição na empresa e o salário, como observado nos gráficos de dispersão da figura \ref{fig:posdisp} e uma reta parace que se ajusta bem aos dados. Porém o tempo de experiência não parece explicar bem o salário, nos gráficos da figura \ref{fig:expdisp} observamos que uma variação no tempo de experiência não provoca uma variação no salário.
+
+Pelos boxplots da figura \ref{fig:box} e pela tabela \ref{tab:salario}, parece que realmente há uma tendência dos homens ganharem mais que as mulheres. Neles observamos que as médias e as medianas do salário dos homens são maiores que os das mulheres.
+
+Considerando as análises descritivas, modelar o salário pelo sexo, tempo de experiência e posição na empresa parece adequado.
 
 ```{r}
-salary <- read_tsv("salary.dat", col_names = c("salary", "sex", "position", "experience"))
+salary <- read_tsv("salary.dat", col_names = c("salary", "sex", "position", "experience")) %>%
+  mutate(pos_centrada = position - mean(position), exp_centrada = experience - mean(experience))
+```
+
+```{r, fig.cap="\\label{fig:posdisp} Gráfico de dispersão entre o salário e posição separado pelo sexo", fig.height=3}
+salary %>% ggplot(aes(x = position, y =  salary)) + geom_point() + facet_wrap(~ sex) +
+  labs(x = "Posição na empresa", y = "Salário")
+```
+
+```{r, fig.cap="\\label{fig:expdisp} Gráfico de dispersão entre o salário e experiência separado pelo sexo", fig.height=3}
+salary %>% ggplot(aes(x = experience, y =  salary)) + geom_point() + facet_wrap(~ sex) +
+    labs(x = "Tempo de experiência", y = "Salário")
+```
+
+```{r fig.cap="\\label{fig:box} Boxplot do salário pelo sexo", fig.height=3.5}
+salary %>% ggplot(aes(x = sex, y = salary)) + geom_boxplot() +
+  labs(x = "Sexo", y = "Salário")
+```
+
+```{r salario}
+salary %>% group_by(sex) %>%
+  summarise(media = mean(salary), dp = sd(salary), cv = percent(dp/media)) %>%
+  set_colnames(c("Sexo","Média", "Desvio Padrão", "Coeficiente de Variação")) %>% 
+  kable("latex", booktabs = T, caption = "Estatística do salário para homens e mulheres") %>%
+  kable_styling(font_size = 10)
+```
+
+
+# Análise inferencial
+
+## 
+
+```{r}
+salary.fit <- salary %>% lm(salary ~ -1 + sex +  pos_centrada:sex + exp_centrada:sex,.)
 ```
 
 ```{r}
-salary %>% ggplot(aes(x = position, y =  salary)) + geom_point() + facet_wrap(~ sex)
+tabela.completo <- salary.fit %>% estimate_tibble() %>% 
+  kable("latex", booktabs = T, caption = "Estimativa para os parâmetros do modelo completo.") %>%
+  kable_styling(font_size = 10)
 ```
 
 ```{r}
-salary %>% ggplot(aes(x = experience, y =  salary)) + geom_point() + facet_wrap(~ sex)
+normal_diag(salary.fit)
 ```
 
+##
+
+```{r}
+salary.matrix <- model.matrix(~ -1 + sex +  pos_centrada:sex + exp_centrada:sex, salary)[,-5]
+salary.fit.reduzido <- lm(salary$salary ~ salary.matrix + 0)
+tabela.reduzido <- salary.fit.reduzido %>% estimate_tibble() %>% 
+  kable("latex", booktabs = T, caption = "Estimativa para os parâmetros do modelo reduzido") %>%
+  kable_styling(font_size = 10)
+```
+
+```{r}
+normal_diag(salary.fit.reduzido)
+```
+
+
+##
+
+```{r}
+medidas <- cbind(model_measures(salary.fit),model_measures(salary.fit.reduzido)) %>%
+  set_colnames(c("Completo", "Reduzido")) %>%
+  kable("latex", caption = "Medidas de comparação do modelo.", booktabs = T) %>% kable_styling(font_size = 10)
+medidas
+```
+
+
+```{r}
+cook_hat(salary.fit.reduzido)
+```
+
+
+# Conclusão
+
+# Referências
 
