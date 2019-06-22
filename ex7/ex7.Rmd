@@ -58,6 +58,9 @@ library(corrplot)
 library(ggfortify)
 library(broom)
 library(kableExtra)
+library(readxl)
+library(knitr)
+library(formattable)
 source("../diag_norm.R")
 source("../envel_norm.R")
 source("../norm_diag.R")
@@ -65,55 +68,177 @@ source("../anainflu_norm.R")
 source("../cook_hat.R")
 source("../estimate_table.R")
 source("../model_measures.R")
-library(knitr)
 ```
 
 # Introdução
 
+Um estudo realizado na Faculdade de Odontologia da Universidade de São Paulo tinha como objetivo comprar duas escovas de dente (convencional e monobloco) com respeito à redução de um índice de placa bacteriana. De um total de 32 crianças foram coletados os índices de placa bacteriana (IPB) antes e depois da escovação. Cada criança foi submetido a 4 tratamentos (escova convencional com dentifrício, escova convencional sem dentifrício,escova monobloco com dentifrício, escova monobloco sem dentifrício), com espaçamento de 1 semana entre eles para eliminar possíveis efeito residuais.
+
+Nosso objetio é comparar os quatro grupos formados pelas combinações dos fatores escova e dentifrício, assumindo que as observações não são correlacionadas e são homecadásticas, e determinar o grupo com melhor desemprenho. Para isso serão proposto modelos com duas variáveis respostas diferentes uma é $\frac{IPB\space depois}{IPB\space antes}$ (será denotada no resto do relatório como Razão A) e a outra é $\frac{IPB\space depois - IPB\space antes}{IPB\space antes}$ (será denotada no resto do relatório como Razão B). Para ambas quanto menor o seu valor melhor o desempenho da escovação. Ambas as variáveis respostas serão modeladas pelas variáveis explicativas tipo de escova e uso do dentrifício. A variável dentrifício será codificida da forma: 1 - uso de dentrifíco; 0 - sem uso de dentrifício.
+
+Para tal análises será usada a metodologia dos modelos lineares homocedásticos, metodologias de verificação da qualidade do ajuste e comparação de modelos apropriado, veja Azevedo (2019). Todas as análises serão feitas com auxílio computacional do R.
+
 # Análise Descritiva
 
 ```{r}
-escova <- read_table("Singer&Andrade1997.txt",
-                     col_names = c("ind", "sexo", "ipb_preH", "ipb_posH", "ipb_preT", "ipb_posT")) %>%
-  mutate(razaoH = ipb_posH/ipb_preH, razaoT = ipb_posT/ipb_preT,
-         razaoH13 = (ipb_posH - ipb_preH)/ipb_preH, razaoT13 = (ipb_posT - ipb_preT)/ipb_preT)
+escovadf <- read_excel("Sef1999REG.xls", sheet = 4) %>%
+  filter(antes != 0) %>% 
+  mutate(razao12 = depois/antes, razao13 = (depois - antes)/antes,
+         dentrificio = factor(dentrificio), escova = factor(escova))
+```
+
+Primeiramente devido a natureza da variável resposta duas observações tiveram que ser removidas do grupo, a do indivíduo 26 no dia 2 e a do indivíduo 24 também no dia 2, pois seus valores valores de IPB antes são iguais a zero e consequemente a variável resposta não é um número. O ideal seria contatar o pesquisador para conversar sobre esses casos e decidir o que fazer, mas como não é possível tivemos que tomar essa ação.
+
+Em ambas as variáveis respostas, Razão A e Razão B, notamos através dos boxplots das figuras \ref{fig:boxA} e \ref{fig:boxB} e das tabelas \ref{tab:medA} e \ref{tab:medB} que a escova convencional parece performar melhor que a monobloco. Também observamos que a escovação com dentrifício apresenta um melhor resultado do que sem. Os boxplots das figuras \ref{fig:boxA} e \ref{fig:boxB} também sugerem uma assimetria na distribuição dos dados, que não é ideal em um modelo linear normal.
+
+```{r, fig.cap="\\label{fig:boxA} Boxplot para a Razão A pelo tipo de escova e pelo uso de dentrifício.", fig.height=3.5}
+escovadf %>% ggplot(aes(y = razao12, x = escova, fill = dentrificio)) + geom_boxplot() +
+  scale_fill_grey(start = 0.4, end = 1) + 
+  labs(x = "Tipo de escova", y = "Razão A", fill = "Dentrifício")
 ```
 
 ```{r}
-dispersao.H.12 <- escova %>% ggplot(aes(x = ipb_preH, y = razaoH)) + geom_point() + facet_wrap(~ sexo)
-dispersao.T.12 <- escova %>% ggplot(aes(x = ipb_preT, y = razaoT)) + geom_point() + facet_wrap(~ sexo)
-dispersao.H.13 <- escova %>% ggplot(aes(x = ipb_preH, y = razaoH13)) + geom_point() + facet_wrap(~ sexo)
-dispersao.T.13 <- escova %>% ggplot(aes(x = ipb_preT, y = razaoT13)) + geom_point() + facet_wrap(~ sexo)
+escovadf %>% group_by(escova, dentrificio) %>%
+  summarise(media = mean(razao12), dp = sd(razao12), cv = dp/media) %>%
+  ungroup() %>% mutate_if(is.numeric, funs(round(.,4))) %>%
+  mutate(cv = percent(cv)) %>%
+  set_colnames(c("Escova", "Dentrifício", "Média", "Desvio Padrão", "Coeficiente de Variação")) %>% 
+  kable("latex", booktabs = T, caption = "\\label{tab:medA}Medidas descritivas para a Razão A.") %>%
+  kable_styling(font_size = 10)
+```
+
+
+```{r, fig.cap="\\label{fig:boxB} Boxplot para a Razão B pelo tipo de escova e pelo uso de dentrifício.", fig.height=3.5}
+escovadf %>% ggplot(aes(y = razao13, x = escova, fill = dentrificio)) + geom_boxplot() +
+  scale_fill_grey(start = 0.4, end = 1) + 
+  labs(x = "Tipo de escova", y = "Razão B")
 ```
 
 ```{r}
-boxplot.H.12 <- escova %>% ggplot(aes(x = sexo, y = razaoH)) + geom_boxplot()
-boxplot.T.12 <- escova %>% ggplot(aes(x = sexo, y = razaoT)) + geom_boxplot()
-boxplot.H.13 <- escova %>% ggplot(aes(x = sexo, y = razaoH13)) + geom_boxplot()
-boxplot.T.13 <- escova %>% ggplot(aes(x = sexo, y = razaoT13)) + geom_boxplot()
+escovadf %>% group_by(escova, dentrificio) %>%
+  summarise(media = mean(razao13), dp = sd(razao13), cv = abs(dp/media)) %>%
+  ungroup() %>% mutate_if(is.numeric, funs(round(.,4))) %>%
+  mutate(cv = percent(cv)) %>%
+  set_colnames(c("Escova", "Dentrifício", "Média", "Desvio Padrão", "Coeficiente de Variação")) %>% 
+  kable("latex", booktabs = T, caption = "\\label{tab:medB}Medidas descritivas para a Razão B.") %>%
+  kable_styling(font_size = 10)
+```
+
+# Análise Inferencial
+
+Iremos primeiramente ajustar dois modelos lineares homecedásticos, o para a Razão A será chamado de Modelo A e o para a Razão B será chamado de Modelo B. Em ambos consideraremos as duas variáveis respostas e a sua interação. Os modelos serão ajustados segundo o método dos mínimos quadrados ordinários e a significância de casa parâmetro será testada a partir de vários testes, veja Azevedo(2019).
+
+Para ambos os modelos teremos a mesma equação do modelo. Seja $Y_{ijk}$ a razão da k-ésima criançca para o tipo de escova i = (convencional, monobloco) e para o uso de dentrifíco j = (0,1). Temos o seguinte modelo:
+$$Y_{ijk} = \mu + \beta_{0i} + \beta_{1j} + \beta_{0i}\beta_{1j} + \varepsilon_{ijk}$$
+onde $\mu$ é o valor esperado de $Y_{ijk}$ para quando a criança usar a escova tradicional e não usar dentrifíco, $\beta_{0convencional} = 0$ e $\beta_{10} = 0$ pois estamos usando cassela de referência, $\beta_{0tradicional}$ é o efeito da criança usar escova tradicional na média, $\beta_{11}$ é o efeito do uso do dentrifíco e $\beta_{0i}\beta_{1j}$ é o efeito de interação das duas variáveis. A parte aleatório do modelo é dada por $\varepsilon_{ijk} \stackrel{\text{i.i.d}}{\sim} N(0,\sigma^2)$.
+
+Os modelos são válido sobre as seguintes suposições: (i) $\varepsilon_{ijk} \stackrel{\text{i.i.d}}{\sim} N(0,\sigma^2)$; (ii) as observações são independentes; (iii) e a variância é constante.
+
+Os modelos foram ajustado segundo o método dos mínimos quadrados ordinários e a significância de seus parâmetros fo determinada a partir de um teste de hipótese utilizando as estatística t. O resultado dos ajuste se encontra na tabela \ref{tab:parA} e \ref{tab:parA}, podemos notar que ambas praticamente só o $\mu$ é significante para o model. O $\beta_{11}$ pode ser considerado significátivo dependendo do nível de confiança e pelas análises descritivas isso parece ser plausível. Para entender mais de quais fatores são significantes fizemos uma análise de covariância. Observando o resultado desses testes nas tabelas \ref{tab:anovaA} e \ref{tab:anovaB} chegamos a conlusão que o uso de dentrifício afeta o modelo.
+
+```{r}
+escova.model.12 <- escovadf %>% lm(razao12 ~ escova*dentrificio,.)
 ```
 
 ```{r}
-grid.arrange(dispersao.H.12,dispersao.T.12)
+escova.model.13 <- escovadf %>% lm(razao13 ~ escova*dentrificio,.)
 ```
 
 ```{r}
-grid.arrange(dispersao.H.13,dispersao.T.13)
+escova.model.12 %>% estimate_tibble() %>% 
+  kable("latex", booktabs = T, caption = "\\label{tab:parA}Estimativa para os parâmetros do modelo A") %>%
+  kable_styling(font_size = 10)
 ```
 
 ```{r}
-grid.arrange(boxplot.H.12,boxplot.T.12, ncol = 2)
+escova.model.13 %>% estimate_tibble() %>% 
+  kable("latex", booktabs = T, caption = "\\label{tab:parB}Estimativa para os parâmetros do modelo B") %>%
+  kable_styling(font_size = 10)
 ```
 
 ```{r}
-grid.arrange(boxplot.H.13,boxplot.T.13, ncol = 2)
+anova(escova.model.12) %>% broom::tidy() %>% mutate_if(is.numeric, funs(round(.,4))) %>%
+  magrittr::set_colnames(c("Fonte de variação", "Graus de liberdade",
+                           "Soma de quadrados", "Quadrados Médios",
+                           "Estatística","p-valor")) %>%
+  knitr::kable("latex", caption = "\\label{tab:anovaA}Análise de convariância para o modelo A", booktabs = T) %>%
+  kableExtra::kable_styling(font_size = 10)
 ```
 
 ```{r}
-escova_12 <- escova %>% dplyr::select(sexo, ipb_preH, ipb_preT, razaoH, razaoT) %>%
-  gather(tipo, ipb_pre,-sexo, -razaoH, - razaoT) %>% 
-  gather(tipo1, razao, -sexo, -tipo, -ipb_pre) %>%
-  mutate(tipo = if_else(tipo == "ipb_preH", "H", "T")) %>%
-  dplyr::select(-tipo1)
+anova(escova.model.13) %>% broom::tidy() %>% mutate_if(is.numeric, funs(round(.,4))) %>%
+  magrittr::set_colnames(c("Fonte de variação", "Graus de liberdade",
+                           "Soma de quadrados", "Quadrados Médios",
+                           "Estatística","p-valor")) %>%
+  knitr::kable("latex", caption = "\\label{tab:anovaB}Análise de convariância para o modelo B", booktabs = T) %>%
+  kableExtra::kable_styling(font_size = 10)
 ```
+
+Para ambos os modelos as análises de resíduos, figuras \ref{fig:diagA} e \ref{fig:diagB} indicaram quebra das suposições. O gráficos dos resíduos pelos valores ajustados indicam a presença de Heteroscedasticidade, os histogramas e os gráficos quantis-quantis indicam a ausencência de normalidade devido a forte assimetria. Apenas a suposição de indepêndencia parece se manter.
+
+```{r, fig.cap="\\label{fig:diagA} Diagnóstico do modelo A", fig.height=3.5}
+normal_diag(escova.model.12)
+```
+
+```{r, fig.cap="\\label{fig:diagB} Diagnóstico do modelo B", fig.height=3.5}
+normal_diag(escova.model.13)
+```
+
+Devido ao mal ajuste dos modelos propostos, proporemos dois novos modelos que irão considerar apenas o fator do uso do dentrífico. Os modelos reduzidos serão dados por:
+$$Y_{jk} = \mu + \beta_j + \varepsilon_{jk}$$
+onde $\mu$ é o valor esperado na variável resposta quando a criança escova sem dentrifíco, $\beta_0 =0$ por adotarmos cassela de referência e $\beta_1$ é o efeito esperado para quando a criança escova com dentrifíco. Aind temos as mesmas suposições: (i) $\varepsilon_{ij} \stackrel{\text{i.i.d}}{\sim} N(0,\sigma^2)$; (ii) as observações são independentes; (iii) e a variância é constante.
+
+As novas estimativas podem ser vistas nas tabelas \ref{tab:parAr} e \ref{tab:parBr}, dessa vez todos os seu parâmetros são significantes. No diagnóstico do modelo, nas figuras \ref{fig:diagAr} e \ref{fig:diagBr}, podemos novamente rejeitar a suposição de normalidade, embora o problema de heterocedasticidade tenha sido resolvido ou pelo menos amenizado.
+
+```{r}
+escova.model.12reduzido <- escovadf %>% lm(razao12 ~ dentrificio,.)
+```
+
+```{r}
+escova.model.13reduzido <- escovadf %>% lm(razao13 ~ dentrificio,.)
+```
+
+```{r}
+escova.model.12reduzido %>% estimate_tibble() %>% 
+  kable("latex", booktabs = T, caption = "\\label{tab:parAr}Estimativa para os parâmetros do modelo A reduzido") %>%
+  kable_styling(font_size = 10)
+```
+
+```{r}
+escova.model.13reduzido %>% estimate_tibble() %>% 
+  kable("latex", booktabs = T, caption = "\\label{tab:parBr}Estimativa para os parâmetros do modelo B reduzido") %>%
+  kable_styling(font_size = 10)
+```
+
+```{r, fig.cap="\\label{fig:diagAr} Diagnóstico do modelo A reduzido", fig.height=3.5}
+normal_diag(escova.model.12reduzido)
+```
+
+```{r, fig.cap="\\label{fig:diagBr} Diagnóstico do modelo B reduzido", fig.height=3.5}
+normal_diag(escova.model.13reduzido)
+```
+
+```{r}
+cook_hat(escova.model.12reduzido)
+```
+
+```{r}
+cook_hat(escova.model.13reduzido)
+```
+
+```{r}
+medidas <- cbind(model_measures(escova.model.12),model_measures(escova.model.13),
+                 model_measures(escova.model.12reduzido),model_measures(escova.model.13reduzido)) %>%
+  set_colnames(c("Modelo A", "Modelo B", "Modelo A Reduzido", "Modelo B Reduzido")) %>%
+  kable("latex", caption = "Medidas de comparação do modelo.", booktabs = T) %>% kable_styling(font_size = 10)
+medidas
+```
+
+# Conclusão
+
+# Referências
+
+
+
+
 

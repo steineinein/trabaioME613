@@ -19,7 +19,7 @@ normal_diag <- function(fit.model){
                    bins = histbase$breaks %>% length(),
                    breaks=histbase$breaks,
                    color="black", fill="white",center=0) +
-    labs(y="Densidade", y="Resíduo Studentizado") + alt_theme
+    labs(y="Densidade", x="Resíduo Studentizado") + alt_theme
   residual_qqplot <- student_residuals %>% ggplot(aes(sample = residual)) +
     stat_qq_band(bandType = "boot", alpha = 0.4) +
     stat_qq_line(colour = "#8DA0CB") +
