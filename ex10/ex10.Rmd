@@ -1,0 +1,254 @@
+---
+title: "Questão 7"
+output:
+  pdf_document:
+    fig_crop: no
+fontsize: 10pt
+sansfont: Times
+documentclass: article
+geometry: 
+ - a4paper
+ - textwidth=18cm
+ - textheight=21cm
+header-includes:
+  - \usepackage[utf8]{inputenc}
+  - \usepackage[brazil, english, portuguese]{babel}
+  - \usepackage[utf8]{inputenc}
+  - \usepackage[T1]{fontenc}
+  - \usepackage[fixlanguage]{babelbib}
+  - \usepackage{times}
+
+  - \usepackage{graphicx}
+  - \usepackage{wrapfig}
+  - \usepackage{pdfpages}
+  
+  - \usepackage{amsfonts}
+  - \usepackage{amssymb}
+  - \usepackage{amsmath}
+  
+  - \usepackage{fancyhdr}
+  - \usepackage{subcaption}
+  - \usepackage{booktabs}
+  - \usepackage{caption}
+  - \usepackage{float}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, 
+  message = FALSE,
+  warning = FALSE,
+  tidy.opts = list(width.cutoff = 60),
+  tidy = TRUE,
+  digits=3
+  )
+options(
+  OutDec = ",", 
+  knitr.table.format = "latex", 
+  xtable.comment = FALSE
+  )
+ggplot2::theme_set(ggplot2::theme_bw())
+```
+
+```{r}
+library(tidyverse)
+library(magrittr)
+library(gridExtra)
+library(corrplot)
+library(ggfortify)
+library(broom)
+library(kableExtra)
+library(readxl)
+library(knitr)
+library(formattable)
+library(nlstools)
+source("../diag_norm.R")
+source("../envel_norm.R")
+source("../norm_diag.R")
+source("../anainflu_norm.R")
+source("../cook_hat.R")
+source("../estimate_table.R")
+source("../model_measures.R")
+```
+
+# Introdução
+
+Em uma amostra de 71 coelhos europeus da espécia Oryctolagus Cuniculuse, se mediu o peso da lente ocular seca (em mg) e a idade do animal (em dias). Temos como objetivo explicar o peso da lente em funação da idade. Para isso ajustaremos dois modelos, onde a variável resposta é o peso da lente a a explicativa a ideia. Ajustaremos um modelo normal não linear homocedástico e iremos comparer seu resultado com o ajuste de um modelo linear normal homocedástico com transformação da variável explicativa. Para mais informação sobre o ajuste e diagnóstico desse modelos veja Azevedo (2019). Todas as análises serão feitas com auxílio computacional do R.
+
+# Análise Descritiva
+
+Pelo gráfico de dispersão, figura \ref{fig:disp}, podemos observar um relação positiva entre o peso e a idade. Está relação porém aparente não ser linear, sendo melhor ajustada por uma função logarítmica ou por uma razão. 
+
+```{r}
+coelho <- read.table("Ratkowsky.dat") %>% as_tibble() %>% set_colnames(c("idade","peso"))
+```
+
+```{r ,fig.cap="\\label{fig:disp} Gráfico de dispersão do peso pela idade.", fig.height=3.5}
+coelho %>% ggplot(aes(x = idade, y = peso)) + geom_point() +
+  labs(x = "Idade (dias)", y = "Peso (mg)")
+```
+
+# Análise Inferencial
+
+O modelo linear foi ajustado segundo o métodos dos mínimos quadraddos ordinários e o modelo não linear foi ajusta segundo o método interativo de Gauss-Newton. Seja $Y_i$ o peso da lente ocular do i-ésimo coelhos temos dois modelos.
+
+* Modelo linear:
+
+$$Y_i=\beta_0 + \beta_1logx_i + \varepsilon_i$$
+
+Onde $\varepsilon_i$ é a parte aleatória, $x_i$ é a idade do i-ésimo coelho, $\beta_0$ é o peso esperado da lente ocular do coelho quando a idade é igual a 1 e $\beta_1$ é o incremente esperado no peso quando $logx_i$ auemnta em uma unidade. Porém esse modelo é problemático quando temos $x_i \leq 1$, resultando em valores negativos do peso.
+
+* Modelo linear:
+
+$$Y_i= \frac{\phi_0*x_i}{\phi_1 + x_i} + \varepsilon_i$$
+
+Onde $\varepsilon_i$ é a parte aleatória, $x_i$ é a idade do i-ésimo coelho, porém por causa da forma da equação perdemos a interpretação dos parâmetros $\phi_0$ e $\phi_1$.
+
+Os resultados dos ajustes dos modelos podem ser vistos nas tabelas \ref{tab:nonlinear} e \ref{tab:linear}. Todos os parâmetros foram considerados significativos. Como notamos o modelo linear com transformação na variável apresenta problemas para valores pequeno de $x_i$
+
+```{r}
+coelho.fit <- nls(peso ~ a*idade/(b + idade), data = coelho, start = list(a = 300, b = 150))
+```
+
+```{r}
+table.coelho.fit <- coelho.fit %>% broom::tidy() %>%
+    mutate(lower = estimate - std.error*1.96, upper = estimate + std.error*1.96) %>%
+    mutate_if(is.numeric, funs(round(.,3))) %>%
+    mutate(IC = paste("[",lower,";",upper,"]"),
+           p.value = if_else(p.value < 0.001, "< 0.001", as.character(p.value))) %>%
+    dplyr::select(1:3,IC,statistic, p.value) %>%
+    set_colnames(c("Termo", "Estimativa", "Erro Padrão", "IC (95%)", "Estatística t", "p-valor")) %>%
+    kable("latex", booktabs = T, caption = "Estimativa para os parâmetros do modelo não linear.") %>%
+    kable_styling(font_size = 10)
+```
+
+
+
+\begin{table}[h]
+
+\caption{\label{tab:nonlinear} Estimativa para os parâmetros do modelo não linear}
+\centering
+\fontsize{10}{12}\selectfont
+\begin{tabular}{lrrlrl}
+\toprule
+Termo & Estimativa & Erro Padrão & IC (95\%) & Estatística t & p-valor\\
+\midrule
+$\phi_0$ & 295,746 & 4,799 & [ 286,341 ; 305,152 ] & 61,629 & < 0.001\\
+$\phi_1$ & 168,382 & 7,019 & [ 154,623 ; 182,14 ] & 23,988 & < 0.001\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+```{r}
+coelho.fit.log <- lm(peso ~ log(idade), data = coelho)
+```
+
+```{r}
+table.coelho.fit <- coelho.fit.log %>% estimate_tibble() %>%
+  kable("latex", booktabs = T, caption = "Estimativa para os parâmetros do modelo linear com transformação.") %>%
+  kable_styling(font_size = 10)
+```
+
+\begin{table}[h]
+
+\caption{\label{tab:linear}Estimativa para os parâmetros do modelo linear com transformação.}
+\centering
+\fontsize{10}{12}\selectfont
+\begin{tabular}{lrrlrl}
+\toprule
+Termo & Estimativa & Erro Padrão & IC (95\%) & Estatística t & p-valor\\
+\midrule
+$\beta_0$ & -169,137 & 6,851 & [ -182,565 ; -155,71 ] & -24,689 & < 0.001\\
+$\beta_1$ & 62,167 & 1,327 & [ 59,567 ; 64,768 ] & 46,854 & < 0.001\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Como podemos observar pela figura \ref{fig:predict} o modelo não linear pareceu se ajusar melhor aos dados. Pela análises de resíduos nas figuras \ref{fig:residnonlinear} e \ref{fig:residlinear} as suposições de normalidade dos dados e de homocedasticidade não parecem corretas. No gráfico dos resíduos pelos valores ajustados vemos um aumento na variância, que indica heterocedasticidade. Os gráficos quantis-quantis e histogramas dos resíduos mostram uma assimetria, que indica não normalidade. Porém no quesito de normalidade o modelo não linear se aproxima muito mais de uma normal que o linear. Para as medidas de ajusto do modelo, vistas na tabelta \ref{tab:medidas}, o modelo não linear resultou em melhores valores, que indica um melhor ajuste.
+
+
+```{r , fig.cap="\\label{fig:predict}Gráfico de dispersão do peso pela idade com os valores preditos. Modelo linear em azul e não linear em vermelho", fig.height=3.5}
+coelho %>% mutate(fit = fitted(coelho.fit), fit.log = fitted(coelho.fit.log)) %>%
+  ggplot() +
+  geom_point(aes(x = idade, y = peso)) +
+  geom_line(aes(x = idade, y = fit), color = "red") +
+  geom_line(aes(x = idade, y = fit.log), color = "blue")
+```
+
+```{r, fig.cap="\\label{fig:residnonlinear} Gráfico de resíduos para o modelo não linear", fig.height=3.5}
+alt_theme <- theme(text = element_text(size=10))
+student_residuals <- tibble(residual = nlsResiduals(coelho.fit)$resi2[,2],
+                            fit = fitted(coelho.fit),
+                            index = 1:length(residual))
+residual_index <- student_residuals %>% ggplot(aes(x = index, y = residual)) +
+  geom_point() + geom_hline(yintercept = c(-2,0,2),linetype = "dashed") +
+  labs(x="Índice", y="Resíduo Studentizado") + alt_theme
+residual_fitted <- student_residuals %>% ggplot(aes(x = fit, y = residual)) +
+  geom_point() + geom_hline(yintercept = c(-2,0,2),linetype = "dashed") +
+  labs(x="Valores Ajustados", y="Resíduo Studentizado") + alt_theme
+histbase <- hist(student_residuals$residual, plot = FALSE)
+residual_histogram <- student_residuals %>% ggplot(aes(x = residual)) +
+  geom_histogram(aes(y = ..density..),
+                 bins = histbase$breaks %>% length(),
+                 breaks=histbase$breaks,
+                 color="black", fill="white",center=0) +
+  labs(y="Densidade", x="Resíduo Studentizado") + alt_theme
+residual_qqplot <- student_residuals %>% ggplot(aes(sample = residual)) +
+  stat_qq_band(bandType = "boot", alpha = 0.4) +
+  stat_qq_line(colour = "#8DA0CB") +
+  stat_qq_point() + labs(y ="Resíduo Studentizado", x = "Percentil da N(0,1)") + alt_theme
+grid.arrange(residual_index, residual_fitted, residual_histogram, residual_qqplot)
+```
+
+```{r, fig.cap="\\label{fig:residlinear} Gráfico de resíduos para o modelo linear", fig.height=3.5}
+normal_diag(coelho.fit.log)
+```
+
+```{r}
+logLikr <- logLik(coelho.fit)
+n <- nrow(coelho)
+p <- 2 #+ 1
+AICe <- AIC(coelho.fit)
+BICe <- BIC(coelho.fit)
+AICce <- AICe + 2*p*(p+1)/(n-p-1)
+SABICe <- -2*logLikr + p*log((n+2)/24)
+HQCICe <- -2*logLikr + 2*p*log(log(n))
+m2loglik <- -2*logLikr
+resultE <- c(AICe,BICe,AICce,SABICe,HQCICe,m2loglik)
+names(resultE)<- c("AIC","BIC","AICc","SABIC","HQCIC","-2log.lik")
+medidas.coelho <- resultE
+```
+
+```{r}
+logLikr <- logLik(coelho.fit.log)
+n <- nrow(coelho)
+p <- 2 #+ 1
+AICe <- AIC(coelho.fit.log)
+BICe <- BIC(coelho.fit.log)
+AICce <- AICe + 2*p*(p+1)/(n-p-1)
+SABICe <- -2*logLikr + p*log((n+2)/24)
+HQCICe <- -2*logLikr + 2*p*log(log(n))
+m2loglik <- -2*logLikr
+resultE <- c(AICe,BICe,AICce,SABICe,HQCICe,m2loglik)
+names(resultE)<- c("AIC","BIC","AICc","SABIC","HQCIC","-2log.lik")
+medidas.coelho.log <- resultE
+```
+
+```{r}
+medidas <- cbind(medidas.coelho.log, medidas.coelho) %>%
+  set_colnames(c("Linear", "Não Linear")) %>%
+  kable("latex", caption = "\\label{tab:medidas}Medidas de comparação do modelo.", booktabs = T) %>% kable_styling(font_size = 10)
+medidas
+```
+
+# Conclusão
+
+O modelo não linear quebrou algumas suposições mas se ajustou melhor aos dados que a alternativa linear. Uma sugestão seria ajustar um modelo não normal, com algum distribuição que comportasse melhor essa variância. A partir desse modelo podemo concluir que existe uma relação positiva entre o peso da lente ocular do coelho e sua idade. Porém ela não é linear e conforme o coelho envelhece a variação na idade resulta em uma menora variação no peso.
+
+# Referências
+
+Azevedo, C. L. N (2019). Notas de aula sobre Análise de regressão, http://www.ime.unicamp.br/~cnaber/Material_ME613_1S_2019.htm
+
+Paula, G. A. (2013). Modelos de regressão com apoio computacional, versão pré-eliminar, https://www.ime.usp.br/~giapaula/texto_2013.pdf
+
+
