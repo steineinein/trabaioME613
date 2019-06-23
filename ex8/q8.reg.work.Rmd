@@ -1,9 +1,58 @@
 ---
-title: "Questão 8"
-author: "Guilherme Artoni RA 160318"
-date: "June 15, 2019"
-output: pdf_document
+title: 'Questão 8'
+output:
+  pdf_document:
+    fig_crop: no
+fontsize: 10pt
+sansfont: Times
+documentclass: article
+geometry: 
+ - a4paper
+ - textwidth=18cm
+ - textheight=21cm
+header-includes:
+  - \usepackage[utf8]{inputenc}
+  - \usepackage[brazil, english, portuguese]{babel}
+  - \usepackage[utf8]{inputenc}
+  - \usepackage[T1]{fontenc}
+  - \usepackage[fixlanguage]{babelbib}
+  - \usepackage{times}
+
+  - \usepackage{graphicx}
+  - \usepackage{wrapfig}
+  - \usepackage{pdfpages}
+  
+  - \usepackage{amsfonts}
+  - \usepackage{amssymb}
+  - \usepackage{amsmath}
+  
+  - \usepackage{fancyhdr}
+  - \usepackage{subcaption}
+  - \usepackage{booktabs}
+  - \usepackage{caption}
+  - \usepackage{float}
 ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, 
+  message = FALSE,
+  warning = FALSE,
+  tidy.opts = list(width.cutoff = 60),
+  tidy = TRUE,
+  digits=3
+  )
+options(
+  OutDec = ",", 
+  knitr.table.format = "latex", 
+  xtable.comment = FALSE
+  )
+ggplot2::theme_set(ggplot2::theme_bw())
+```
+
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+```
 \section{Questão 8}
 
 $$Y_i = \beta _0 + \beta _1 (x_i - \overline{x}) + \xi _i $$
@@ -97,6 +146,18 @@ for (i in 1:100) {
 ```
 
 ```{r}
+# Gera os histogramas das estimativas dos parâmetros
+par(mfrow = c(2,3))
+hist(beta030a, main = "Estimativas do Beta0 (n=30)", xlab = "Estimativas do Beta0", ylab = "Frequência")
+hist(beta050a, main = "Estimativas do Beta0 (n=50)", xlab = "Estimativas do Beta0", ylab = "Frequência")
+hist(beta0100a, main = "Estimativas do Beta0 (n=100)", xlab = "Estimativas do Beta0", ylab = "Frequência")
+hist(beta130a, main = "Estimativas do Beta0 (n=30)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+hist(beta150a, main = "Estimativas do Beta0 (n=50)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+hist(beta1100a, main = "Estimativas do Beta0 (n=100)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+```
+
+
+```{r}
 # Armazena os intervalos de confiança de 95% para as estimativas do beta0 e beta1 para as amostras de tamanho 30
 cibeta030a <- matrix(nrow = 100, ncol = 2)
 cibeta130a <- matrix(nrow = 100, ncol = 2)
@@ -142,6 +203,41 @@ for (i in 1:100) {
   cibeta1100a[i,2] <- aux[2,2]
 }
 ```
+
+```{r}
+# Calcula os quantis amostrais de 2,5% e 97,5%
+icbeta0.n30a <- quantile(beta030a, probs = c(0.025, 0.975))
+icbeta0.n50a <- quantile(beta050a, probs = c(0.025, 0.975))
+icbeta0.n100a <- quantile(beta0100a, probs = c(0.025, 0.975))
+icbeta1.n30a <- quantile(beta130a, probs = c(0.025, 0.975))
+icbeta1.n50a <- quantile(beta150a, probs = c(0.025, 0.975))
+icbeta1.n100a <- quantile(beta1100a, probs = c(0.025, 0.975))
+```
+
+```{r}
+# Calcula a proporção de IC's que contém o verdadeiro valor do parâmetro
+prop.cibeta030a <- cibeta030a %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta050a <- cibeta050a %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta0100a <- cibeta0100a %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta130a <- cibeta130a %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta150a <- cibeta150a %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta1100a <- cibeta1100a %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+```
+
+\begin{table}
+\centering
+\begin{tabular}{ccc}
+Parâmetros & IC(95\%) & Tamanho amostral \\
+\hline
+$\beta_0$ & [-0,49 ; 2,54] & 30 \\
+$\beta_0$ & [0,04 ; 2,08] & 50 \\
+$\beta_0$ & [0,26 ; 1,63] & 100 \\
+$\beta_1$ & [1,24 ; 1,79] & 30 \\
+$\beta_1$ & [1,27 ; 1,76] & 50 \\
+$\beta_1$ & [1,30 ; 1,70] & 100 \\
+\hline
+\end{tabular}
+\end{table}
 
 \subsection{Item b}
 $$\cal{V}(\xi_i) = \sigma^2x_i$$
@@ -220,6 +316,17 @@ for (i in 1:100) {
 ```
 
 ```{r}
+# Gera os histogramas das estimativas dos parâmetros
+par(mfrow = c(2,3))
+hist(beta030b, main = "Estimativas do Beta0 (n=30)", xlab = "Estimativas do Beta0", ylab = "Frequência")
+hist(beta050b, main = "Estimativas do Beta0 (n=50)", xlab = "Estimativas do Beta0", ylab = "Frequência")
+hist(beta0100b, main = "Estimativas do Beta0 (n=100)", xlab = "Estimativas do Beta0", ylab = "Frequência")
+hist(beta130b, main = "Estimativas do Beta0 (n=30)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+hist(beta150b, main = "Estimativas do Beta0 (n=50)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+hist(beta1100b, main = "Estimativas do Beta0 (n=100)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+```
+
+```{r}
 # Armazena os intervalos de confiança de 95% para as estimativas do beta0 e beta1 para as amostras de tamanho 30
 cibeta030b <- matrix(nrow = 100, ncol = 2)
 cibeta130b <- matrix(nrow = 100, ncol = 2)
@@ -265,6 +372,41 @@ for (i in 1:100) {
   cibeta1100b[i,2] <- aux[2,2]
 }
 ```
+
+```{r}
+#Calcula os quantis amostrais de 2,5% e 97,5%
+icbeta0.n30b <- quantile(beta030b, probs = c(0.025, 0.975))
+icbeta0.n50b <- quantile(beta050b, probs = c(0.025, 0.975))
+icbeta0.n100b <- quantile(beta0100b, probs = c(0.025, 0.975))
+icbeta1.n30b <- quantile(beta130b, probs = c(0.025, 0.975))
+icbeta1.n50b <- quantile(beta150b, probs = c(0.025, 0.975))
+icbeta1.n100b <- quantile(beta1100b, probs = c(0.025, 0.975))
+```
+
+```{r}
+# Calcula a proporção de IC's que contém o verdadeiro valor do parâmetro
+prop.cibeta030b <- cibeta030b %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta050b <- cibeta050b %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta0100b <- cibeta0100b %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta130b <- cibeta130b %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta150b <- cibeta150b %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta1100b <- cibeta1100b %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+```
+
+\begin{table}
+\centering
+\begin{tabular}{ccc}
+Parâmetros & IC(95\%) & Tamanho amostral \\
+\hline
+$\beta_0$ & [-14,43 ; 25,21] & 30 \\
+$\beta_0$ & [-14,21 ; 14,56] & 50 \\
+$\beta_0$ & [-8,57 ; 11,23] & 100 \\
+$\beta_1$ & [-2,59 ; 5,91] & 30 \\
+$\beta_1$ & [-2,98 ; 5,18] & 50 \\
+$\beta_1$ & [-1,45 ; 3,97] & 100 \\
+\hline
+\end{tabular}
+\end{table}
 
 \subsection{Item c}
 $$\xi_i \overset{\small{iid}}{\sim} t_{(6)}$$
@@ -343,6 +485,17 @@ for (i in 1:100) {
 ```
 
 ```{r}
+# Gera os histogramas das estimativas dos parâmetros
+par(mfrow = c(2,3))
+hist(beta030c, main = "Estimativas do Beta0 (n=30)", xlab = "Estimativas do Beta0", ylab = "Frequência")
+hist(beta050c, main = "Estimativas do Beta0 (n=50)", xlab = "Estimativas do Beta0", ylab = "Frequência")
+hist(beta0100c, main = "Estimativas do Beta0 (n=100)", xlab = "Estimativas do Beta0", ylab = "Frequência")
+hist(beta130c, main = "Estimativas do Beta0 (n=30)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+hist(beta150c, main = "Estimativas do Beta0 (n=50)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+hist(beta1100c, main = "Estimativas do Beta0 (n=100)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+```
+
+```{r}
 # Armazena os intervalos de confiança de 95% para as estimativas do beta0 e beta1 para as amostras de tamanho 30
 cibeta030c <- matrix(nrow = 100, ncol = 2)
 cibeta130c <- matrix(nrow = 100, ncol = 2)
@@ -389,8 +542,43 @@ for (i in 1:100) {
 }
 ```
 
+```{r}
+# Calcula os quantis amostrais de 2,5% e 97,5%
+icbeta0.n30c <- quantile(beta030c, probs = c(0.025, 0.975))
+icbeta0.n50c <- quantile(beta050c, probs = c(0.025, 0.975))
+icbeta0.n100c <- quantile(beta0100c, probs = c(0.025, 0.975))
+icbeta1.n30c <- quantile(beta130c, probs = c(0.025, 0.975))
+icbeta1.n50c <- quantile(beta150c, probs = c(0.025, 0.975))
+icbeta1.n100c <- quantile(beta1100c, probs = c(0.025, 0.975))
+```
+
+```{r}
+# Calcula a proporção de IC's que contém o verdadeiro valor do parâmetro
+prop.cibeta030c <- cibeta030c %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta050c <- cibeta050c %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta0100c <- cibeta0100c %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta130c <- cibeta130c %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta150c <- cibeta150c %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta1100c <- cibeta1100c %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+```
+
+\begin{table}
+\centering
+\begin{tabular}{ccc}
+Parâmetros & IC(95\%) & Tamanho amostral \\
+\hline
+$\beta_0$ & [2,35 ; 3,28] & 30 \\
+$\beta_0$ & [2,38 ; 3,13] & 50 \\
+$\beta_0$ & [2,47 ; 2,96] & 100 \\
+$\beta_1$ & [1,35 ; 1,61] & 30 \\
+$\beta_1$ & [1,42 ; 1,57] & 50 \\
+$\beta_1$ & [1,44 ; 1,57] & 100 \\
+\hline
+\end{tabular}
+\end{table}
+
 \subsection{Item d}
-$$\cal{V}(\xi_i) = 4 \quad \text{e} \quad \text{Corre}(\xi_i, \ \xi_j) = \text{0,90} \quad \text{para} \quad i  \neq j $$
+$$\cal{V}(\xi_\text{i}) = \text{4} \quad \text{e} \quad \text{Corre}(\xi_\text{i}, \ \xi_\text{j}) = \text{0,90} \quad \text{para} \quad \text{i}  \neq \text{j} $$
 ```{r}
 # Gera os vetores de médias
 mu.30 <- rep(0, times=30)
@@ -408,8 +596,11 @@ diag(var.cov.matrix.n100) <- 4
 # Gera os 100 valores de Y para uma normal multivariada com vetor de médias e matriz de covariâncias dadas acima
 library(MASS)
 y30d <- mvrnorm(100, mu.30, var.cov.matrix.n30)
+y30d <- t(y30d)
 y50d <- mvrnorm(100, mu.50, var.cov.matrix.n50)
-y100d <- mvrnorm(1, mu.100, var.cov.matrix.n100)
+y50d <- t(y50d)
+y100d <- mvrnorm(100, mu.100, var.cov.matrix.n100)
+y100d <- t(y100d)
 ```
 
 ```{r}
@@ -419,7 +610,142 @@ colnames(y50d) <- paste("y50d", 1:100, sep = "")
 colnames(y100d) <- paste("y100d", 1:100, sep = "")
 ```
 
+```{r}
+# Ajusta todos os modelos da simulação para as amostras de tamanho 30
+mnih30d <- list()
+for (i in 1:100) {
+ mnih30d[[i]] <- lm(y30d[,i] ~ dif.x30.x30mean) 
+}
 
+# Ajusta todos os modelos da simulação para as amostras de tamanho 50
+mnih50d <- list()
+for (i in 1:100) {
+ mnih50d[[i]] <- lm(y50d[,i] ~ dif.x50.x50mean) 
+}
 
+# Ajusta todos os modelos da simulação para as amostras de tamanho 100
+mnih100d <- list()
+for (i in 1:100) {
+ mnih100d[[i]] <- lm(y100d[,i] ~ dif.x100.x100mean) 
+}
+```
 
+```{r}
+# Armazena as estimativas dos parâmetros para as amostras de tamanho 30
+beta030d <- c()
+beta130d <- c()
+for (i in 1:100) {
+  beta030d[i] <- mnih30d[[i]][[1]][[1]]
+  beta130d[i] <- mnih30d[[i]][[1]][[2]]
+}
+
+# Armazena as estimativas dos parâmetros para as amostras de tamanho 50
+beta050d <- c()
+beta150d <- c()
+for (i in 1:100) {
+  beta050d[i] <- mnih50d[[i]][[1]][[1]]
+  beta150d[i] <- mnih50d[[i]][[1]][[2]]
+}
+
+# Armazena as estimativas dos parâmetros para as amostras de tamanho 100
+beta0100d <- c()
+beta1100d <- c()
+for (i in 1:100) {
+  beta0100d[i] <- mnih100d[[i]][[1]][[1]]
+  beta1100d[i] <- mnih100d[[i]][[1]][[2]]
+}
+```
+
+```{r}
+# Gera os histogramas das estimativas dos parâmetros
+par(mfrow = c(2,3))
+hist(beta030d, main = "Estimativas do Beta0 (n=30)", xlab = "Estimativas do Beta0", ylab = "Frequência")
+hist(beta050d, main = "Estimativas do Beta0 (n=50)", xlab = "Estimativas do Beta0", ylab = "Frequência")
+hist(beta0100d, main = "Estimativas do Beta0 (n=100)", xlab = "Estimativas do Beta0", ylab = "Frequência")
+hist(beta130d, main = "Estimativas do Beta0 (n=30)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+hist(beta150d, main = "Estimativas do Beta0 (n=50)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+hist(beta1100d, main = "Estimativas do Beta0 (n=100)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+```
+
+```{r}
+# Armazena os intervalos de confiança de 95% para as estimativas do beta0 e beta1 para as amostras de tamanho 30
+cibeta030d <- matrix(nrow = 100, ncol = 2)
+cibeta130d <- matrix(nrow = 100, ncol = 2)
+colnames(cibeta030d) <- c("2,5%", "97,5%")
+colnames(cibeta130d) <- c("2,5%", "97,5%")
+rownames(cibeta030d) <- paste("y30d", 1:100, sep = "")
+rownames(cibeta130d) <- paste("y30d", 1:100, sep = "")
+for (i in 1:100) {
+  aux <- confint(mnih30d[[i]])
+  cibeta030d[i,1] <- aux[1,1]
+  cibeta030d[i,2] <- aux[1,2]
+  cibeta130d[i,1] <- aux[2,1]
+  cibeta130d[i,2] <- aux[2,2]
+}
+
+# Armazena os intervalos de confiança de 95% para as estimativas do beta0 e beta1 para as amostras de tamanho 50
+cibeta050d <- matrix(nrow = 100, ncol = 2)
+cibeta150d <- matrix(nrow = 100, ncol = 2)
+colnames(cibeta050d) <- c("2,5%", "97,5%")
+colnames(cibeta150d) <- c("2,5%", "97,5%")
+rownames(cibeta050d) <- paste("y50d", 1:100, sep = "")
+rownames(cibeta150d) <- paste("y50d", 1:100, sep = "")
+for (i in 1:100) {
+  aux <- confint(mnih50d[[i]])
+  cibeta050d[i,1] <- aux[1,1]
+  cibeta050d[i,2] <- aux[1,2]
+  cibeta150d[i,1] <- aux[2,1]
+  cibeta150d[i,2] <- aux[2,2]
+}
+
+# Armazena os intervalos de confiança de 95% para as estimativas do beta0 e beta1 para as amostras de tamanho 100
+cibeta0100d <- matrix(nrow = 100, ncol = 2)
+cibeta1100d <- matrix(nrow = 100, ncol = 2)
+colnames(cibeta0100d) <- c("2,5%", "97,5%")
+colnames(cibeta1100d) <- c("2,5%", "97,5%")
+rownames(cibeta0100d) <- paste("y100d", 1:100, sep = "")
+rownames(cibeta1100d) <- paste("y100d", 1:100, sep = "")
+for (i in 1:100) {
+  aux <- confint(mnih100d[[i]])
+  cibeta0100d[i,1] <- aux[1,1]
+  cibeta0100d[i,2] <- aux[1,2]
+  cibeta1100d[i,1] <- aux[2,1]
+  cibeta1100d[i,2] <- aux[2,2]
+}
+```
+
+```{r}
+# Calcula os quantis amostrais de 2,5% e 97,5%
+icbeta0.n30d <- quantile(beta030d, probs = c(0.025, 0.975))
+icbeta0.n50d <- quantile(beta050d, probs = c(0.025, 0.975))
+icbeta0.n100d <- quantile(beta0100d, probs = c(0.025, 0.975))
+icbeta1.n30d <- quantile(beta130d, probs = c(0.025, 0.975))
+icbeta1.n50d <- quantile(beta150d, probs = c(0.025, 0.975))
+icbeta1.n100d <- quantile(beta1100d, probs = c(0.025, 0.975))
+```
+
+```{r}
+# Calcula a proporção de IC's que contém o verdadeiro valor do parâmetro
+prop.cibeta030d <- cibeta030d %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta050d <- cibeta050d %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta0100d <- cibeta0100d %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta130d <- cibeta130d %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta150d <- cibeta150d %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta1100d <- cibeta1100d %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+```
+
+\begin{table}
+\centering
+\begin{tabular}{ccc}
+Parâmetros & IC(95\%) & Tamanho amostral \\
+\hline
+$\beta_0$ & [-3,93 ; 3,02] & 30 \\
+$\beta_0$ & [-4,95 ; 3,31] & 50 \\
+$\beta_0$ & [-4,23 ; 3,54] & 100 \\
+$\beta_1$ & [-0,05 ; 0,06] & 30 \\
+$\beta_1$ & [-0,04 ; 0,04] & 50 \\
+$\beta_1$ & [-0,03 ; 0,03] & 100 \\
+\hline
+\end{tabular}
+\end{table}
 
