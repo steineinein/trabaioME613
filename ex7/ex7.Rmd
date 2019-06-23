@@ -74,7 +74,7 @@ source("../model_measures.R")
 
 Um estudo realizado na Faculdade de Odontologia da Universidade de São Paulo tinha como objetivo comprar duas escovas de dente (convencional e monobloco) com respeito à redução de um índice de placa bacteriana. De um total de 32 crianças foram coletados os índices de placa bacteriana (IPB) antes e depois da escovação. Cada criança foi submetido a 4 tratamentos (escova convencional com dentifrício, escova convencional sem dentifrício,escova monobloco com dentifrício, escova monobloco sem dentifrício), com espaçamento de 1 semana entre eles para eliminar possíveis efeito residuais.
 
-Nosso objetio é comparar os quatro grupos formados pelas combinações dos fatores escova e dentifrício, assumindo que as observações não são correlacionadas e são homecadásticas, e determinar o grupo com melhor desemprenho. Para isso serão proposto modelos com duas variáveis respostas diferentes uma é $\frac{IPB\space depois}{IPB\space antes}$ (será denotada no resto do relatório como Razão A) e a outra é $\frac{IPB\space depois - IPB\space antes}{IPB\space antes}$ (será denotada no resto do relatório como Razão B). Para ambas quanto menor o seu valor melhor o desempenho da escovação. Ambas as variáveis respostas serão modeladas pelas variáveis explicativas tipo de escova e uso do dentrifício. A variável dentrifício será codificida da forma: 1 - uso de dentrifíco; 0 - sem uso de dentrifício.
+Nosso objetivo é comparar os quatro grupos formados pelas combinações dos fatores escova e dentifrício, assumindo que as observações não são correlacionadas e são homocedásticas, e determinar o grupo com melhor desemprenho. Para isso serão proposto modelos com duas variáveis respostas diferentes uma é $\frac{IPB\space depois}{IPB\space antes}$ (será denotada no resto do relatório como Razão A) e a outra é $\frac{IPB\space depois - IPB\space antes}{IPB\space antes}$ (será denotada no resto do relatório como Razão B). Para ambas quanto menor o seu valor melhor o desempenho da escovação. Ambas as variáveis respostas serão modeladas pelas variáveis explicativas tipo de escova e uso do dentifrício. A variável dentifrício será codificada da forma: 1 - uso de dentífrico; 0 - sem uso de dentifrício.
 
 Para tal análises será usada a metodologia dos modelos lineares homocedásticos, metodologias de verificação da qualidade do ajuste e comparação de modelos apropriado, veja Azevedo (2019). Todas as análises serão feitas com auxílio computacional do R.
 
@@ -87,9 +87,9 @@ escovadf <- read_excel("Sef1999REG.xls", sheet = 4) %>%
          dentrificio = factor(dentrificio), escova = factor(escova))
 ```
 
-Primeiramente devido a natureza da variável resposta duas observações tiveram que ser removidas do grupo, a do indivíduo 26 no dia 2 e a do indivíduo 24 também no dia 2, pois seus valores valores de IPB antes são iguais a zero e consequemente a variável resposta não é um número. O ideal seria contatar o pesquisador para conversar sobre esses casos e decidir o que fazer, mas como não é possível tivemos que tomar essa ação.
+Primeiramente devido a natureza da variável resposta duas observações tiveram que ser removidas do grupo, a do indivíduo 26 no dia 2 e a do indivíduo 24 também no dia 2, pois seus valores valores de IPB antes são iguais a zero e consequentemente a variável resposta não é um número. O ideal seria contatar o pesquisador para conversar sobre esses casos e decidir o que fazer, mas como não é possível tivemos que tomar essa ação.
 
-Em ambas as variáveis respostas, Razão A e Razão B, notamos através dos boxplots das figuras \ref{fig:boxA} e \ref{fig:boxB} e das tabelas \ref{tab:medA} e \ref{tab:medB} que a escova convencional parece performar melhor que a monobloco. Também observamos que a escovação com dentrifício apresenta um melhor resultado do que sem. Os boxplots das figuras \ref{fig:boxA} e \ref{fig:boxB} também sugerem uma assimetria na distribuição dos dados, que não é ideal em um modelo linear normal.
+Em ambas as variáveis respostas, Razão A e Razão B, notamos através dos boxplots das figuras \ref{fig:boxA} e \ref{fig:boxB} e das tabelas \ref{tab:medA} e \ref{tab:medB} que a escova convencional parece performar melhor que a monobloco. Também observamos que a escovação com dentifrício apresenta um melhor resultado do que sem. Os boxplots das figuras \ref{fig:boxA} e \ref{fig:boxB} também sugerem uma assimetria na distribuição dos dados, que não é ideal em um modelo linear normal.
 
 ```{r, fig.cap="\\label{fig:boxA} Boxplot para a Razão A pelo tipo de escova e pelo uso de dentrifício.", fig.height=3.5}
 escovadf %>% ggplot(aes(y = razao12, x = escova, fill = dentrificio)) + geom_boxplot() +
@@ -126,15 +126,15 @@ escovadf %>% group_by(escova, dentrificio) %>%
 
 # Análise Inferencial
 
-Iremos primeiramente ajustar dois modelos lineares homecedásticos, o para a Razão A será chamado de Modelo A e o para a Razão B será chamado de Modelo B. Em ambos consideraremos as duas variáveis respostas e a sua interação. Os modelos serão ajustados segundo o método dos mínimos quadrados ordinários e a significância de casa parâmetro será testada a partir de vários testes, veja Azevedo(2019).
+Iremos primeiramente ajustar dois modelos lineares homocedásticos, o para a Razão A será chamado de Modelo A e o para a Razão B será chamado de Modelo B. Em ambos consideraremos as duas variáveis respostas e a sua interação. Os modelos serão ajustados segundo o método dos mínimos quadrados ordinários e a significância de casa parâmetro será testada a partir de vários testes, veja Azevedo(2019).
 
-Para ambos os modelos teremos a mesma equação do modelo. Seja $Y_{ijk}$ a razão da k-ésima criançca para o tipo de escova i = (convencional, monobloco) e para o uso de dentrifíco j = (0,1). Temos o seguinte modelo:
+Para ambos os modelos teremos a mesma equação do modelo. Seja $Y_{ijk}$ a razão da k-ésima criança para o tipo de escova i = (convencional, monobloco) e para o uso de dentífrico j = (0,1). Temos o seguinte modelo:
 $$Y_{ijk} = \mu + \beta_{0i} + \beta_{1j} + \beta_{0i}\beta_{1j} + \varepsilon_{ijk}$$
-onde $\mu$ é o valor esperado de $Y_{ijk}$ para quando a criança usar a escova tradicional e não usar dentrifíco, $\beta_{0convencional} = 0$ e $\beta_{10} = 0$ pois estamos usando cassela de referência, $\beta_{0tradicional}$ é o efeito da criança usar escova tradicional na média, $\beta_{11}$ é o efeito do uso do dentrifíco e $\beta_{0i}\beta_{1j}$ é o efeito de interação das duas variáveis. A parte aleatório do modelo é dada por $\varepsilon_{ijk} \stackrel{\text{i.i.d}}{\sim} N(0,\sigma^2)$.
+onde $\mu$ é o valor esperado de $Y_{ijk}$ para quando a criança usar a escova tradicional e não usar dentífrico, $\beta_{0convencional} = 0$ e $\beta_{10} = 0$ pois estamos usando casela de referência, $\beta_{0tradicional}$ é o efeito da criança usar escova tradicional na média, $\beta_{11}$ é o efeito do uso do dentífrico e $\beta_{0i}\beta_{1j}$ é o efeito de interação das duas variáveis. A parte aleatório do modelo é dada por $\varepsilon_{ijk} \stackrel{\text{i.i.d}}{\sim} N(0,\sigma^2)$.
 
 Os modelos são válido sobre as seguintes suposições: (i) $\varepsilon_{ijk} \stackrel{\text{i.i.d}}{\sim} N(0,\sigma^2)$; (ii) as observações são independentes; (iii) e a variância é constante.
 
-Os modelos foram ajustado segundo o método dos mínimos quadrados ordinários e a significância de seus parâmetros fo determinada a partir de um teste de hipótese utilizando as estatística t. O resultado dos ajuste se encontra na tabela \ref{tab:parA} e \ref{tab:parA}, podemos notar que ambas praticamente só o $\mu$ é significante para o model. O $\beta_{11}$ pode ser considerado significátivo dependendo do nível de confiança e pelas análises descritivas isso parece ser plausível. Para entender mais de quais fatores são significantes fizemos uma análise de covariância. Observando o resultado desses testes nas tabelas \ref{tab:anovaA} e \ref{tab:anovaB} chegamos a conlusão que o uso de dentrifício afeta o modelo.
+Os modelos foram ajustado segundo o método dos mínimos quadrados ordinários e a significância de seus parâmetros foi determinada a partir de um teste de hipótese utilizando as estatística t. O resultado dos ajuste se encontra na tabela \ref{tab:parA} e \ref{tab:parA}, podemos notar que ambas praticamente só o $\mu$ é significante para o model. O $\beta_{11}$ pode ser considerado significativo dependendo do nível de confiança e pelas análises descritivas isso parece ser plausível. Para entender mais de quais fatores são significantes fizemos uma análise de covariância. Observando o resultado desses testes nas tabelas \ref{tab:anovaA} e \ref{tab:anovaB} chegamos a conclusão que o uso de dentifrício afeta o modelo.
 
 ```{r}
 escova.model.12 <- escovadf %>% lm(razao12 ~ escova*dentrificio,.)
@@ -201,7 +201,7 @@ anova12 <- anova(escova.model.12) %>% broom::tidy() %>% mutate_if(is.numeric, fu
 
 \begin{table}[t]
 
-\caption{\label{tab:}\label{tab:anovaA}Análise de convariância para o modelo A}
+\caption{\label{tab:}\label{tab:anovaA}Análise de covariância para o modelo A}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrrr}
@@ -227,7 +227,7 @@ anova13 <- anova(escova.model.13) %>% broom::tidy() %>% mutate_if(is.numeric, fu
 
 \begin{table}[t]
 
-\caption{\label{tab:}\label{tab:anovaB}Análise de convariância para o modelo B}
+\caption{\label{tab:}\label{tab:anovaB}Análise de covariância para o modelo B}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrrr}
@@ -242,7 +242,7 @@ Erro & 122 & 6,9029 & 0,0566 & NA & NA\\
 \end{tabular}
 \end{table}
 
-Para ambos os modelos as análises de resíduos, figuras \ref{fig:diagA} e \ref{fig:diagB} indicaram quebra das suposições. O gráficos dos resíduos pelos valores ajustados indicam a presença de Heteroscedasticidade, os histogramas e os gráficos quantis-quantis indicam a ausencência de normalidade devido a forte assimetria. Apenas a suposição de indepêndencia parece se manter. 
+Para ambos os modelos as análises de resíduos, figuras \ref{fig:diagA} e \ref{fig:diagB} indicaram quebra das suposições. O gráficos dos resíduos pelos valores ajustados indicam a presença de Heteroscedasticidade, os histogramas e os gráficos quantis-quantis indicam a ausencia de normalidade devido a forte assimetria. Apenas a suposição de independência parece se manter. 
 
 ```{r, fig.cap="\\label{fig:diagA} Diagnóstico do modelo A", fig.height=3.5}
 normal_diag(escova.model.12)
@@ -252,11 +252,11 @@ normal_diag(escova.model.12)
 normal_diag(escova.model.13)
 ```
 
-Devido ao mal ajuste dos modelos propostos, proporemos dois novos modelos que irão considerar apenas o fator do uso do dentrífico. Os modelos reduzidos serão dados por:
+Devido ao mal ajuste dos modelos propostos, proporemos dois novos modelos que irão considerar apenas o fator do uso do dentífrico. Os modelos reduzidos serão dados por:
 $$Y_{jk} = \mu + \beta_j + \varepsilon_{jk}$$
-onde $\mu$ é o valor esperado na variável resposta quando a criança escova sem dentrifíco, $\beta_0 =0$ por adotarmos cassela de referência e $\beta_1$ é o efeito esperado para quando a criança escova com dentrifíco. Aind temos as mesmas suposições: (i) $\varepsilon_{ij} \stackrel{\text{i.i.d}}{\sim} N(0,\sigma^2)$; (ii) as observações são independentes; (iii) e a variância é constante.
+onde $\mu$ é o valor esperado na variável resposta quando a criança escova sem dentífrico, $\beta_0 =0$ por adotarmos casela de referência e $\beta_1$ é o efeito esperado para quando a criança escova com dentífrico. Ainda temos as mesmas suposições: (i) $\varepsilon_{ij} \stackrel{\text{i.i.d}}{\sim} N(0,\sigma^2)$; (ii) as observações são independentes; (iii) e a variância é constante.
 
-As novas estimativas podem ser vistas nas tabelas \ref{tab:parAr} e \ref{tab:parBr}, dessa vez todos os seu parâmetros são significantes. No diagnóstico do modelo, nas figuras \ref{fig:diagAr} e \ref{fig:diagBr}, podemos novamente rejeitar a suposição de normalidade, embora o problema de heterocedasticidade tenha sido resolvido ou pelo menos amenizado. Em relação aos pontos influentes ou alavanca, para ambos os modelos nenhum ponto se confirmou. Na medida H nenhum dos pontos passam do limiar e os pontos que se destacan na distância de cook na influênciam muito nas estatisticas do modelo e não mudam a conclusão.
+As novas estimativas podem ser vistas nas tabelas \ref{tab:parAr} e \ref{tab:parBr}, dessa vez todos os seu parâmetros são significantes. No diagnóstico do modelo, nas figuras \ref{fig:diagAr} e \ref{fig:diagBr}, podemos novamente rejeitar a suposição de normalidade, embora o problema de heterocedasticidade tenha sido resolvido ou pelo menos amenizado. Em relação aos pontos influentes ou alavanca, para ambos os modelos nenhum ponto se confirmou. Na medida H nenhum dos pontos passam do limiar e os pontos que se destacam na distância de cook na influenciam muito nas estatísticas do modelo e não mudam a conclusão.
 
 ```{r}
 escova.model.12reduzido <- escovadf %>% lm(razao12 ~ dentrificio,.)
@@ -324,7 +324,7 @@ cook_hat(escova.model.12reduzido)
 cook_hat(escova.model.13reduzido)
 ```
 
-Na comparação dos modelos os modelos A e B, e A e B reduzidos se mostraram praticamente identicos, como visto na tabela \ref{tab:comp}. Porém ao comparar os modelos reduzidos aos completo os modelos reduzidos parecem melhor.
+Na comparação dos modelos os modelos A e B, e A e B reduzidos se mostraram praticamente idênticos, como visto na tabela \ref{tab:comp}. Porém ao comparar os modelos reduzidos aos completo os modelos reduzidos parecem melhor.
 
 ```{r}
 medidas <- cbind(model_measures(escova.model.12),model_measures(escova.model.13),
@@ -336,9 +336,9 @@ medidas
 
 # Conclusão
  
-Todos os modelos ajustados não se mostraram apropriados, ou seja quebraram algumas das suposições necessárias. Devido a isso as estatísticas e portanto as conclusões sobre os dados podem estar erradas. Em nossa análise o tipo de escova se mostrou não significativo no modelo, porem a análise descritiva sugere um efeito do mesmo, talvez se usassemos de um modelo mais apropriado mais apropriado esse fator se provesse significativo.
+Todos os modelos ajustados não se mostraram apropriados, ou seja quebraram algumas das suposições necessárias. Devido a isso as estatísticas e portanto as conclusões sobre os dados podem estar erradas. Em nossa análise o tipo de escova se mostrou não significativo no modelo, porem a análise descritiva sugere um efeito do mesmo, talvez se usássemos de um modelo mais apropriado mais apropriado esse fator se provesse significativo.
 
-Tabrabalhando com os modelos que temos em mão os modelos reduzidos parecem mais apropriados que os modelos completos e aparentemente quebram menos suposições. Considerando as análises de diagnóstico e as medidas de comparação os modelos reduzidos parecem uma melhor escolha. Os modelos não se mostram diferentes em relação a razão A e razão B, portanto escolhemo o modelo de mais fácil interpretabilidade, que ao nosso ver é a razão A. Pois nessa razão quanto mais perto de 0 mais efetivo foi a escovação e para razão B quanto mais perto de -1.
+Trabalhando com os modelos que temos em mão os modelos reduzidos parecem mais apropriados que os modelos completos e aparentemente quebram menos suposições. Considerando as análises de diagnóstico e as medidas de comparação os modelos reduzidos parecem uma melhor escolha. Os modelos não se mostram diferentes em relação a razão A e razão B, portanto escolhemo o modelo de mais fácil interpretabilidade, que ao nosso ver é a razão A. Pois nessa razão quanto mais perto de 0 mais efetivo foi a escovação e para razão B quanto mais perto de -1.
 
 
 # Referências

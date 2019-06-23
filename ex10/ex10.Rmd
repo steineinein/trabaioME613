@@ -1,5 +1,5 @@
 ---
-title: "Questão 7"
+title: "Questão 10"
 output:
   pdf_document:
     fig_crop: no
@@ -73,7 +73,7 @@ source("../model_measures.R")
 
 # Introdução
 
-Em uma amostra de 71 coelhos europeus da espécia Oryctolagus Cuniculuse, se mediu o peso da lente ocular seca (em mg) e a idade do animal (em dias). Temos como objetivo explicar o peso da lente em funação da idade. Para isso ajustaremos dois modelos, onde a variável resposta é o peso da lente a a explicativa a ideia. Ajustaremos um modelo normal não linear homocedástico e iremos comparer seu resultado com o ajuste de um modelo linear normal homocedástico com transformação da variável explicativa. Para mais informação sobre o ajuste e diagnóstico desse modelos veja Azevedo (2019). Todas as análises serão feitas com auxílio computacional do R.
+Em uma amostra de 71 coelhos europeus da espécia Oryctolagus Cuniculuse, se mediu o peso da lente ocular seca (em mg) e a idade do animal (em dias). Temos como objetivo explicar o peso da lente em função da idade. Para isso ajustaremos dois modelos, onde a variável resposta é o peso da lente a a explicativa a ideia. Ajustaremos um modelo normal não linear homocedástico e iremos comparar seu resultado com o ajuste de um modelo linear normal homocedástico com transformação da variável explicativa. Para mais informação sobre o ajuste e diagnóstico desse modelos veja Azevedo (2019). Todas as análises serão feitas com auxílio computacional do R.
 
 # Análise Descritiva
 
@@ -90,13 +90,13 @@ coelho %>% ggplot(aes(x = idade, y = peso)) + geom_point() +
 
 # Análise Inferencial
 
-O modelo linear foi ajustado segundo o métodos dos mínimos quadraddos ordinários e o modelo não linear foi ajusta segundo o método interativo de Gauss-Newton. Seja $Y_i$ o peso da lente ocular do i-ésimo coelhos temos dois modelos.
+O modelo linear foi ajustado segundo o métodos dos mínimos quadrados ordinários e o modelo não linear foi ajusta segundo o método interativo de Gauss-Newton. Seja $Y_i$ o peso da lente ocular do i-ésimo coelhos temos dois modelos.
 
 * Modelo linear:
 
 $$Y_i=\beta_0 + \beta_1logx_i + \varepsilon_i$$
 
-Onde $\varepsilon_i$ é a parte aleatória, $x_i$ é a idade do i-ésimo coelho, $\beta_0$ é o peso esperado da lente ocular do coelho quando a idade é igual a 1 e $\beta_1$ é o incremente esperado no peso quando $logx_i$ auemnta em uma unidade. Porém esse modelo é problemático quando temos $x_i \leq 1$, resultando em valores negativos do peso.
+Onde $\varepsilon_i$ é a parte aleatória, $x_i$ é a idade do i-ésimo coelho, $\beta_0$ é o peso esperado da lente ocular do coelho quando a idade é igual a 1 e $\beta_1$ é o incremente esperado no peso quando $logx_i$ aumenta em uma unidade. Porém esse modelo é problemático quando temos $x_i \leq 1$, resultando em valores negativos do peso.
 
 * Modelo linear:
 
@@ -164,7 +164,7 @@ $\beta_1$ & 62,167 & 1,327 & [ 59,567 ; 64,768 ] & 46,854 & < 0.001\\
 \end{tabular}
 \end{table}
 
-Como podemos observar pela figura \ref{fig:predict} o modelo não linear pareceu se ajusar melhor aos dados. Pela análises de resíduos nas figuras \ref{fig:residnonlinear} e \ref{fig:residlinear} as suposições de normalidade dos dados e de homocedasticidade não parecem corretas. No gráfico dos resíduos pelos valores ajustados vemos um aumento na variância, que indica heterocedasticidade. Os gráficos quantis-quantis e histogramas dos resíduos mostram uma assimetria, que indica não normalidade. Porém no quesito de normalidade o modelo não linear se aproxima muito mais de uma normal que o linear. Para as medidas de ajusto do modelo, vistas na tabelta \ref{tab:medidas}, o modelo não linear resultou em melhores valores, que indica um melhor ajuste.
+Como podemos observar pela figura \ref{fig:predict} o modelo não linear pareceu se ajustar melhor aos dados. Pela análises de resíduos nas figuras \ref{fig:residnonlinear} e \ref{fig:residlinear} as suposições de normalidade dos dados e de homoscedasticidade não parecem corretas. No gráfico dos resíduos pelos valores ajustados vemos um aumento na variância, que indica heterocedasticidade. Os gráficos quantis-quantis e histogramas dos resíduos mostram uma assimetria, que indica não normalidade. Porém no quesito de normalidade o modelo não linear se aproxima muito mais de uma normal que o linear. Para as medidas de ajusto do modelo, vistas na tabela \ref{tab:medidas}, o modelo não linear resultou em melhores valores, que indica um melhor ajuste.
 
 
 ```{r , fig.cap="\\label{fig:predict}Gráfico de dispersão do peso pela idade com os valores preditos. Modelo linear em azul e não linear em vermelho", fig.height=3.5}
@@ -243,7 +243,7 @@ medidas
 
 # Conclusão
 
-O modelo não linear quebrou algumas suposições mas se ajustou melhor aos dados que a alternativa linear. Uma sugestão seria ajustar um modelo não normal, com algum distribuição que comportasse melhor essa variância. A partir desse modelo podemo concluir que existe uma relação positiva entre o peso da lente ocular do coelho e sua idade. Porém ela não é linear e conforme o coelho envelhece a variação na idade resulta em uma menora variação no peso.
+O modelo não linear quebrou algumas suposições mas se ajustou melhor aos dados que a alternativa linear. Uma sugestão seria ajustar um modelo não normal, com algum distribuição que comportasse melhor essa variância. A partir desse modelo podemo concluir que existe uma relação positiva entre o peso da lente ocular do coelho e sua idade. Porém ela não é linear e conforme o coelho envelhece a variação na idade resulta em uma menor variação no peso.
 
 # Referências
 
