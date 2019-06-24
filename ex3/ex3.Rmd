@@ -1,0 +1,159 @@
+---
+title: "Questão 3"
+output:
+  pdf_document:
+    fig_crop: no
+fontsize: 10pt
+sansfont: Times
+documentclass: article
+geometry: 
+ - a4paper
+ - textwidth=18cm
+ - textheight=21cm
+header-includes:
+  - \usepackage[utf8]{inputenc}
+  - \usepackage[brazil, english, portuguese]{babel}
+  - \usepackage[utf8]{inputenc}
+  - \usepackage[T1]{fontenc}
+  - \usepackage[fixlanguage]{babelbib}
+  - \usepackage{times}
+
+  - \usepackage{graphicx}
+  - \usepackage{wrapfig}
+  - \usepackage{pdfpages}
+  
+  - \usepackage{amsfonts}
+  - \usepackage{amssymb}
+  - \usepackage{amsmath}
+  
+  - \usepackage{fancyhdr}
+  - \usepackage{subcaption}
+  - \usepackage{booktabs}
+  - \usepackage{caption}
+  - \usepackage{float}
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, 
+  message = FALSE,
+  warning = FALSE,
+  tidy.opts = list(width.cutoff = 60),
+  tidy = TRUE,
+  digits=3
+  )
+options(
+  OutDec = ",", 
+  knitr.table.format = "latex", 
+  xtable.comment = FALSE
+  )
+ggplot2::theme_set(ggplot2::theme_bw())
+```
+
+```{r}
+library(tidyverse)
+library(magrittr)
+library(gridExtra)
+library(corrplot)
+library(ggfortify)
+library(broom)
+library(kableExtra)
+library(formattable)
+source("../diag_norm.R")
+source("../envel_norm.R")
+source("../norm_diag.R")
+source("../anainflu_norm.R")
+source("../cook_hat.R")
+source("../estimate_table.R")
+source("../model_measures.R")
+library(knitr)
+```
+
+# Introdução
+
+Um estudo da Faculdade de Mecivina da USP sobre esforço cardiopulmonar em pacientes com insuficiência cardíaca tinha como objetivo comprar diferentes etiologias cadíacas quanto às respostas respiratórias e matabólicas. As etiologias cardiacas são: CH - chagásticos; ID - idiopáticos; IS = isquêmicos; e C - controle. O objetivo do nosso modelo é explicar a variação do consumo de oxigênio no limiar anaeróbico (ml/(kg.min)) em gunção da carga usada na esteira ergométrica. 
+
+Temos para a nossa análise dados de 118 pacientes que foram submetidos ao teste na esteira. Para tal análises será usada a metodologia dos modelos lineares homocedásticos, metodologias de verificação da qualidade do ajuste e comparação de modelos apropriado, veja Azevedo (2019). Todas as análises serão feitas com auxílio computacional do R.
+
+# Análise descritiva
+
+Pelas figuras \ref{fig:disptio} e \ref{fig:disp} observamos que a carga se relaciona com positivamente com o consumo e que uma reta parece modelar bem a relação. Olhando as etiologias individualmente vemos que individualmente uma reta para cada caso, quatro retas, parece também fazer sentido. Porém na figura \ref{fig:disp} sugere que talvez a relação entre o consumo e carga sejam as mesmas para todos os casos, ou seja apenas uma reta, seja uma suposição válida.
+
+
+```{r}
+coracao <- read_table("BragaPCR.txt", col_names = c("etiologia","carga","consumo")) %>% mutate(etiologia = factor(etiologia))
+```
+
+```{r ,fig.cap="\\label{fig:disptio} Gráfico de dispersão do consumo pela carga, separado por etiologias.", fig.height = 3.5}
+coracao %>% ggplot(aes(x = carga, y = consumo)) + facet_wrap(~ etiologia) + geom_point() 
+```
+
+```{r,fig.cap="\\label{fig:disp} Gráfico de dispersão geral.", fig.height=3.7}
+coracao %>% ggplot(aes(x = carga, y = consumo, shape = etiologia)) + geom_point()
+```
+
+# Análise Inferencial
+
+Primeiramente ajustaremos um modelo completo de regressão linear homcedástica, que considera a carga, a etiologia e a inteação entre elas. O modelo será ajustado segundo o método dos mínimos quadrados ordinários e a significância de casa parâmetro será testada a partir de estatísticas, veja Azevedo(2019).
+
+Temos que $Y_i$ é o consumo da i-ésima observação, o modelo é
+$$Y_i = \beta_{0j} + \beta_1x_i + \beta_{2j}x_i + \varepsilon_i$$
+para i = (1,2,...,118) e j = (1,2,3,4). Onde $\beta_{0j}$ é o efeito devido a etiologia no consumo, com casela de referência em $\beta_{01}$, $\beta_1x_i$ é o feito da carga no consumo e $\beta_{2j}x_i$ é o efeito de interação da carga com etiologia no consumo, com casela de referência em $\beta_{21}$. Com a parte aleatória sendo $\varepsilon_i$.
+
+Esse modelo é válido sobre as seguintes suposições: (i) $\varepsilon_i \stackrel{\text{i.i.d}}{\sim} N(0,\sigma^2)$; (ii) as observações são independentes; (iii) e a variância é constante.
+
+O modelo foi segundo o método dos mínimos quadrados ordinários. O resultado 
+
+```{r}
+coracao.fit <- lm(consumo ~ carga*etiologia, coracao)
+coracao.fit %>% estimate_tibble() %>% 
+  kable("latex", booktabs = T, caption = "Estimativa para os parâmetros do modelo completo.") %>%
+  kable_styling(font_size = 10)
+```
+
+```{r}
+anova.cor <- anova(coracao.fit)
+anova.cor %>% broom::tidy() %>% mutate_if(is.numeric, funs(round(.,4))) %>%
+  magrittr::set_colnames(c("Fonte de variação", "Graus de liberdade",
+                           "Soma de quadrados", "Quadrados Médios",
+                           "Estatística","p-valor")) %>%
+  knitr::kable("latex", caption = "\\label{tab:anovaA}Análise de convariância para o modelo A", booktabs = T) %>%
+  kableExtra::kable_styling(font_size = 10)
+```
+
+```{r}
+coracao %>% mutate(fit = fitted(coracao.fit)) %>% ggplot() + geom_point(aes(x = carga, y = consumo, shape = etiologia)) + geom_line(aes(x = carga, y = fit, linetype = etiologia))
+```
+
+```{r}
+normal_diag(coracao.fit)
+```
+
+```{r}
+cook_hat(coracao.fit)
+```
+
+```{r}
+coracao.fit.reduzido <- lm(consumo ~ carga, coracao)
+```
+
+```{r}
+coracao %>% mutate(fit = fitted(coracao.fit.reduzido),
+                   upper = predict(coracao.fit.reduzido, se.fit = T, interval = "confidence")$fit[,3],
+                   lower = predict(coracao.fit.reduzido, se.fit = T, interval = "confidence")$fit[,2]) %>% ggplot() + geom_point(aes(x = carga, y = consumo, shape = etiologia)) +
+  geom_line(aes(x = carga, y = fit)) +
+  geom_ribbon(aes(x = carga, ymin = lower, ymax = upper), alpha = 0.3)
+```
+
+```{r}
+normal_diag(coracao.fit.reduzido)
+```
+
+```{r}
+cook_hat(coracao.fit.reduzido)
+```
+
+# Conclusão
+
+# Referências
