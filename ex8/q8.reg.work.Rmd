@@ -945,11 +945,16 @@ prop.pvalue100d <- c()
 prop.pvalue100d <- length(pvaluen100d[pvaluen100d < 0.05])/length(pvaluen100d)
 
 
-#Em um análise geral dos resultados podemos concluir que mesmo o modelo ajustado segundo as suposições de normalidade, independência #e homocedásticidade não apresenta boas estimativas pontuais para $\beta_ \text{1}$, a violação da suposição de homocedásticidade #garantiu boas estimativas, mas em contrapartida a variabilidade das mesmas mostrou-se muito grande tornando-a um investimento de #alto risco, assim como a violação das suposições de normalidade e independência foram as que mais afetaram o ajuste do modelo.
+#Em um análise geral dos resultados podemos concluir que mesmo o modelo ajustado segundo as suposições de normalidade, independência e homocedásticidade não apresenta boas estimativas pontuais para $\beta_ \text{1}$, a violação da suposição de homocedásticidade garantiu boas estimativas, mas em contrapartida a variabilidade das mesmas mostrou-se muito grande tornando-a um investimento de alto risco, assim como a violação das suposições de normalidade e independência foram as que mais afetaram o ajuste do modelo.
+
+# Referências
+
+#Azevedo, C. L. N (2019). Notas de aula sobre Análise de regressão, http://www.ime.unicamp.br/~cnaber/Material_ME613_1S_2019.htm
+
 
 ```
 
-Tendo em vista os resultados mostrados na Figura 4 observa-se assimetria nas distribuições das estimativas de ambos os parâmetros. Contudo há uma concentração das estimativas em torno dos verdadeiros valores dos parâmetros. Permanece presente a semelhante maior variabilidade das estimativas do $\beta_ \text{0}$, também observada nos intervalos de frequências de 95\% presentes na coluna \textit{Interv.(95\%) amostral} da Tabela 4. Como no item anterior os IC's gerados pela função lm() foram insatifatórios para o parâmetro $\beta_ \text{0}$, nota-se pela coluna \textit{Prop. IC(95\%) lm()}, adicionado dos dados da coluna \textit{Prop. Test. Hipot.} em que a grande maioria dos testes de hipótese $C \beta = M$ julgaram contra a hipótese nula.  
+Tendo em vista os resultados mostrados na Figura 4 observa-se assimetria nas distribuições das estimativas de ambos os parâmetros. Contudo há uma concentração das estimativas em torno dos verdadeiros valores dos parâmetros. Permanece presente a semelhante maior variabilidade das estimativas do $\beta_ \text{0}$, também observada nos intervalos de frequências de 95\% presentes na coluna \textit{Interv.(95\%) amostral} da Tabela 4. Como no item anterior os IC's gerados pela função lm() foram insatifatórios para o parâmetro $\beta_ \text{0}$, nota-se pela coluna \textit{Prop. IC(95\%) lm()}, adicionado dos dados da coluna \textit{Prop. Test. Hipot.} em que a grande maioria dos testes de hipótese $C \beta = M$ julgaram contra a hipótese nula. 
 
 
 
