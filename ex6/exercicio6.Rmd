@@ -70,11 +70,11 @@ library(knitr)
 
 # Introdução
 
-Com a intenção de determinar que variáveis influênciam o preço de venda de um imóvel uma amostra de 27 imóveis será analisada. O banco de dados em questão contém as seguintes variáveis: (i) imposto do imóvel (em 100 USD), (ii) érea do terreno (em 1000 pés quadrados), (iii) área construída (em 1000 pés quadrados), (iv) idade da residência (em anos) e (v) preço de venda do imóvel (em 1000 USD). Que podem ser encontrados no site (https://www.ime.unicamp.br/~cnaber/Material_ME613_1S_2019.htm) sob o nome de "imóveis.txt". Para tal análises será usada a metodologia dos modelos lineares homocedásticos, metodologias de verificação da qualidade do ajuste e comparação de modelos apropriado, veja Azevedo (2019). Todas as análises serão feitas com auxílio computacional do R.
+Com a intenção de determinar que variáveis influenciam o preço de venda de um imóvel uma amostra de 27 imóveis será analisada. O banco de dados em questão contém as seguintes variáveis: (i) imposto do imóvel (em 100 USD), (ii) érea do terreno (em 1000 pés quadrados), (iii) área construída (em 1000 pés quadrados), (iv) idade da residência (em anos) e (v) preço de venda do imóvel (em 1000 USD). Que podem ser encontrados no site (https://www.ime.unicamp.br/~cnaber/Material_ME613_1S_2019.htm) sob o nome de "imóveis.txt". Para tal análises será usada a metodologia dos modelos lineares homocedásticos, metodologias de verificação da qualidade do ajuste e comparação de modelos apropriado, veja Azevedo (2019). Todas as análises serão feitas com auxílio computacional do R.
 
 # Análise descritiva
 
-Neste problema a variável respostas é o preço de venda e existe quatro variáveis explicativas que são quantitativa. Então será feito um gráfico de dispersão de cada variável explicativa pela resposta e também será análisada a correlação entre elas. Na figura \ref{fig:scatter} observa-se os quatro casos. O preço de venda parece aumentar consoante ao o aumento da área do terreno, porém não parece que uma reta modele muito bem esse aumento. Conforme a área construída cresce o preço de venda também cresce e uma reta parece modelar bem essa tendência. A relação entre o imposto e o preço aparenta ser positiva e também bem modelada por uma reta. Já a idade da residência não parece influenciar o preço de vende. Essas suposições se fortalecem na análise de correlação na figura \ref{fig:cor}, onde observa-se uma alta correlação entre idade, imposto e área construída com o preço de venda.
+Neste problema a variável respostas é o preço de venda e existe quatro variáveis explicativas que são quantitativa. Então será feito um gráfico de dispersão de cada variável explicativa pela resposta e também será analisada a correlação entre elas. Na figura \ref{fig:scatter} observa-se os quatro casos. O preço de venda parece aumentar consoante ao o aumento da área do terreno, porém não parece que uma reta modele muito bem esse aumento. Conforme a área construída cresce o preço de venda também cresce e uma reta parece modelar bem essa tendência. A relação entre o imposto e o preço aparenta ser positiva e também bem modelada por uma reta. Já a idade da residência não parece influenciar o preço de vende. Essas suposições se fortalecem na análise de correlação na figura \ref{fig:cor}, onde observa-se uma alta correlação entre idade, imposto e área construída com o preço de venda.
 
 ```{r}
 imoveis <- read.table("imoveis.txt") %>% as_tibble() %>% set_colnames(c("tax", "tA", "cA", "age", "price"))
@@ -100,20 +100,20 @@ corrplot.mixed(correlacao, upper = "ellipse", number.cex = .7, lower.col = "blac
 
 # Análise inferencial
 
-Considerando as características do problema, o seu objetivos e as análises descritivas, será considerado primeiramente um modelo completo sem intercepto. Já que um imóvel que não possue área, idade ou imposto em teoria não tem valor. Após o modelo completo será considerado um modelo reduzido se necessário.
+Considerando as características do problema, o seu objetivos e as análises descritivas, será considerado primeiramente um modelo completo sem intercepto. Já que um imóvel que não possuí área, idade ou imposto em teoria não tem valor. Após o modelo completo será considerado um modelo reduzido se necessário.
 
 ## Modelo completo
 
 Seja $Y_i$ o valor do preço de venda da i-ésima, onde i = {1,2,...,27} tem-se o seguinte modelo:
 
 $$Y_i = \beta_0x_{0i} + \beta_1x_{1i} + \beta_2x_{2i} + \beta_3x_{3i} + \varepsilon_i$$
-onde $x_{0i}$, $x_{1i}$, $x_{2i}$, $x_{3i}$ são respectivamentes os valores do imposto do ímovel, da área do terreno, da área construída e da idade da residência. Os parâmetros $\beta_0$, $\beta_1$, $\beta_2$, $\beta_3$ são respectivamente o incremento no preço de venda esperado, quando se mantém todos as outras variáveis fixas e se aumenta em uma unidade o imposto, a área do terreno, a área construída e a idade da residência. E $\varepsilon_i$ é a componente aleatória da observação i.
+onde $x_{0i}$, $x_{1i}$, $x_{2i}$, $x_{3i}$ são respectivamente os valores do imposto do imóvel, da área do terreno, da área construída e da idade da residência. Os parâmetros $\beta_0$, $\beta_1$, $\beta_2$, $\beta_3$ são respectivamente o incremento no preço de venda esperado, quando se mantém todos as outras variáveis fixas e se aumenta em uma unidade o imposto, a área do terreno, a área construída e a idade da residência. E $\varepsilon_i$ é a componente aleatória da observação i.
 
 Esse modelo é válido sobre as seguintes suposições: (i) $\varepsilon_i \stackrel{\text{i.i.d}}{\sim} N(0,\sigma^2)$; (ii) as observações são independentes; (iii) e a variância é constante.
 
 ### Estimativa
 
-O modelo foi ajustado segundo o método dos mínimos quadrados ordinários e a significância de seus parâmetros foi determinada a partir de um teste de hipótese utilizando as estatística t. Esse resultados se encontram na tabela \ref{tab:completo}, os paramêtros $\beta_0$ e $\beta_2$ seguem o que foi observados nas análises descritivas e foram significátivos, mas os parâmetros $\beta_1$ e $\beta_3$ não foram significátivos.
+O modelo foi ajustado segundo o método dos mínimos quadrados ordinários e a significância de seus parâmetros foi determinada a partir de um teste de hipótese utilizando as estatística t. Esse resultados se encontram na tabela \ref{tab:completo}, os parâmetros $\beta_0$ e $\beta_2$ seguem o que foi observados nas análises descritivas e foram significativos, mas os parâmetros $\beta_1$ e $\beta_3$ não foram significativos.
 
 ```{r}
 imoveis.fit.completo <- imoveis %>% lm(price ~ -1 + tax + tA + cA + age,.)
@@ -129,7 +129,7 @@ madidas_completo <- model_measures(imoveis.fit.completo)
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrlrl}
 \toprule
-Termo & Estimatica & Erro Padrão & IC (95\%) & Estatística t & p-valor\\
+Termo & Estimativa & Erro Padrão & IC (95\%) & Estatística t & p-valor\\
 \midrule
 $\beta_0$ & 2,183 & 0,517 & [ 1,17 ; 3,196 ] & 4,224 & < 0.001\\
 $\beta_1$ & 0,357 & 0,455 & [ -0,535 ; 1,248 ] & 0,784 & 0,441\\
@@ -141,7 +141,7 @@ $\beta_3$ & -0,012 & 0,039 & [ -0,089 ; 0,065 ] & -0,311 & 0,759\\
 
 ### Diagnóstico
 
-Observando-se os gráficos de resíduos na figura \ref{fig:diagcompleto} não há motivos para duvidar das suposições de indepêndencia dos erros e de homocedasticidade. Já pelo histograma dos resíduos e dos gráficos quantis-quantis parece haver um assimetria, o que é condizendo já que o preço é uma variável positiva.
+Observando-se os gráficos de resíduos na figura \ref{fig:diagcompleto} não há motivos para duvidar das suposições de independência dos erros e de homoscedasticidade. Já pelo histograma dos resíduos e dos gráficos quantis-quantis parece haver um assimetria, o que é condizendo já que o preço é uma variável positiva.
 
 ```{r, fig.cap="\\label{fig:diagcompleto} Diagnóstico do modelo completo.", fig.height=3.5}
 normal_diag(imoveis.fit.completo)
@@ -149,10 +149,10 @@ normal_diag(imoveis.fit.completo)
 
 ## Modelo reduzido
 
-Como visto no modelo completo algums parâmetros não foram significativos, será feito agora um modelo reduzido. Seja $Y_i$ o valor do preço de venda da i-ésima, onde i = {1,2,...,27} tem-se o seguinte modelo:
+Como visto no modelo completo alguns parâmetros não foram significativos, será feito agora um modelo reduzido. Seja $Y_i$ o valor do preço de venda da i-ésima, onde i = {1,2,...,27} tem-se o seguinte modelo:
 
 $$Y_i = \beta_0x_{0i} + \beta_2x_{2i} + \varepsilon_i$$
-onde $x_{0i}$ e $x_{2i}$ são respectivamentes os valores do imposto do ímovel, da área do terreno, da área construída e da idade da residência. Os parâmetros $\beta_0$ e $\beta_2$ são respectivamente o incremento no preço de venda esperado, quando se mantém todos as outras variáveis fixas e se aumenta em uma unidade o imposto e a área construída. E $\varepsilon_i$ é a componente aleatória da observação i.
+onde $x_{0i}$ e $x_{2i}$ são respectivamente os valores do imposto do imóvel, da área do terreno, da área construída e da idade da residência. Os parâmetros $\beta_0$ e $\beta_2$ são respectivamente o incremento no preço de venda esperado, quando se mantém todos as outras variáveis fixas e se aumenta em uma unidade o imposto e a área construída. E $\varepsilon_i$ é a componente aleatória da observação i.
 
 Esse modelo é válido sobre as seguintes suposições: (i) $\varepsilon_i \stackrel{\text{i.i.d}}{\sim} N(0,\sigma^2)$; (ii) as observações são independentes; (iii) e a variância é constante.
 
@@ -164,7 +164,7 @@ tabela.imovel.reduzido <- imoveis.fit.reduzido %>% estimate_tibble() %>%
   kable("latex", booktabs = T, caption = "Estimativa para os parâmetros do modelo reduzido.") %>% kable_styling(font_size = 10)
 ```
 
-Os métodos de estimação são os mesmos usado no modelo completo. Observando-se a tabela \ref{tab:tab:reduzido}, concluí-se que os parâmetros são significativos e fazem sentido para o modelo.
+Os métodos de estimação são os mesmos usado no modelo completo. Observando-se a tabela \ref{tab:reduzido}, concluí-se que os parâmetros são significativos e fazem sentido para o modelo.
 
 \begin{table}[t]
 
@@ -183,7 +183,7 @@ $\beta_2$ & 14,267 & 2,293 & [ 9,773 ; 18,76 ] & 6,223 & < 0.001\\
 
 ### Diagnóstico
 
-Através do gráficos de resíduos da figura \ref{fig:diagreduzido} chegamos nas mesma conclusões que para o modelo completo, que as suposições de homecedasticidade e independência dos erros parece razoável, mas que os erros não seguem uma distribuição normal.
+Através do gráficos de resíduos da figura \ref{fig:diagreduzido} chegamos nas mesma conclusões que para o modelo completo, que as suposições de homocedasticidade e independência dos erros parece razoável, mas que os erros não seguem uma distribuição normal.
 
 ```{r, fig.cap="\\label{fig:diagreduzido} Diagnóstico do modelo reduzido.",fig.height=3.5}
 normal_diag(imoveis.fit.reduzido)
@@ -210,9 +210,9 @@ cook_hat(imoveis.fit.reduzido)
 
 # Conclusão
 
-Os dois modelos propostos não se ajustaram bem aos dados, muito provavelmente por causa da não normalidade dos dados. Mas nessa classe de modelos opta-se pelo menos pior que aparenta ser o modelo reduzido. Ambos modelos sugerem que conforme o imposto pago aumenta o preço do imóvel também aumenta e que conforme a área construída aumenta o valor do imóvel também aumenta. O ponto influente provavelmente se deve ao fato dado o imposto pago o seu preço de venda é muito baixo do que deveria ser dados a reta, provavelmente algum fator não estuda imfluência esse caso e deve se consultar o pesquisador a respeito dele, ou ao mal ajuste do modelo.
+Os dois modelos propostos não se ajustaram bem aos dados, muito provavelmente por causa da não normalidade dos dados. Mas nessa classe de modelos opta-se pelo menos pior que aparenta ser o modelo reduzido. Ambos modelos sugerem que conforme o imposto pago aumenta o preço do imóvel também aumenta e que conforme a área construída aumenta o valor do imóvel também aumenta. O ponto influente provavelmente se deve ao fato dado o imposto pago o seu preço de venda é muito baixo do que deveria ser dados a reta, provavelmente algum fator não estuda influência esse caso e deve se consultar o pesquisador a respeito dele, ou ao mal ajuste do modelo.
 
-Como o preço é uma variável positiva uma sugestão de melhorias seria usar uma distribuição positiva para modelá-lo, como Gamma ou uma Normal Inversa.
+Como o preço é uma variável positiva uma sugestão de melhorias seria usar uma distribuição positiva para modelá-lo, como Gama ou uma Normal Inversa.
 
 # Referências
 

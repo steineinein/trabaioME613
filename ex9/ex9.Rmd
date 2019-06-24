@@ -77,7 +77,7 @@ Para tal análises será usada a metodologia dos modelos lineares homocedástico
 
 # Análise descritiva
 
-Como suspeitamos, há um relação positiva entre a posição na empresa e o salário, como observado nos gráficos de dispersão da figura \ref{fig:posdisp} e uma reta parace que se ajusta bem aos dados. Porém o tempo de experiência não parece explicar bem o salário, nos gráficos da figura \ref{fig:expdisp} observamos que uma variação no tempo de experiência não provoca uma variação no salário.
+Como suspeitamos, há um relação positiva entre a posição na empresa e o salário, como observado nos gráficos de dispersão da figura \ref{fig:posdisp} e uma reta parasse que se ajusta bem aos dados. Porém o tempo de experiência não parece explicar bem o salário, nos gráficos da figura \ref{fig:expdisp} observamos que uma variação no tempo de experiência não provoca uma variação no salário.
 
 Pelos boxplots da figura \ref{fig:box} e pela tabela \ref{tab:salario}, parece que realmente há uma tendência dos homens ganharem mais que as mulheres. Neles observamos que as médias e as medianas do salário dos homens são maiores que os das mulheres.
 
@@ -114,7 +114,7 @@ salary %>% group_by(sex) %>%
 
 # Análise inferencial
 
-O primeiro modelo proposto será um modelo de regressão linear homecedástico que considera um coeficiente de cada variável quantitativa (experiência e posição) relativo ao sexo e também um coeficiente relativo ao sexo. As variáveis quantitativas serão centradas no zero, para uma maior interpretabilidade. Em seguida se necessário ele será aprimorado e reduzido.
+O primeiro modelo proposto será um modelo de regressão linear homocedástico que considera um coeficiente de cada variável quantitativa (experiência e posição) relativo ao sexo e também um coeficiente relativo ao sexo. As variáveis quantitativas serão centradas no zero, para uma maior interpretabilidade. Em seguida se necessário ele será aprimorado e reduzido.
 
 Os modelos serão ajustados segundo o método dos mínimos quadrados ordinários e a significância de casa parâmetro será testada a partir de uma estatística t, veja Azevedo(2019).
 
@@ -123,11 +123,11 @@ Os modelos serão ajustados segundo o método dos mínimos quadrados ordinários
 Seja $Y_{ij}$ o salário do j-ésimo executivo, para i = 0 (mulher), j = (1,2,...,75) e para i = 1 (homem), j = (1,2,...,145). Temos então o seguinte modelo:
 
 $$Y_{ij} = \alpha_i + \beta_{i0}*(x_{0ij}-\bar{x}_{0i}) + \beta_{i1}*(x_{1ij} - \bar{x}_{1i} )+ \varepsilon_{ij}$$
-onde $x_{0ij}$ é a posição do j-ésimo executivo dado o sexo, $x_{1ij}$ é a experência do j-ésimo executivo dado o sexo. E $\alpha_i$ é o efeito do sexo no salário, $\beta_{i0}$ é o efeito da posição, dado o sexo, no salário e $\beta_{i1}$ é o efeito da experiência, dado o sexo, no salário. Com a parte aleatória sendo $\varepsilon_i$.
+onde $x_{0ij}$ é a posição do j-ésimo executivo dado o sexo, $x_{1ij}$ é a experiência do j-ésimo executivo dado o sexo. E $\alpha_i$ é o efeito do sexo no salário, $\beta_{i0}$ é o efeito da posição, dado o sexo, no salário e $\beta_{i1}$ é o efeito da experiência, dado o sexo, no salário. Com a parte aleatória sendo $\varepsilon_i$.
 
 Esse modelo é válido sobre as seguintes suposições: (i) $\varepsilon_i \stackrel{\text{i.i.d}}{\sim} N(0,\sigma^2)$; (ii) as observações são independentes; (iii) e a variância é constante.
 
-O modelo ajustado resulta no parametro da tabela \ref{tab:parcomp}, alguns resultado parecem condizentes com o da análise descritiva, outros são um pouco surpreendentes. Como observado a posição na empresa tem uma relação positiva com o salário e é significativa para o modelo. O efeito do sexo também foi significativo e o efeito para mulher é maior, ou seja é esperado que mulheres localizadas na média femina(posição e experiência) ganhem mais que homens localizados na média masculina. Por fim os anos de experiência parecem não afetar o salário para as mulheres, pois seu parâmetro foi não significativo e para os os parece afetar negativamente.
+O modelo ajustado resulta no parâmetro da tabela \ref{tab:parcomp}, alguns resultado parecem condizentes com o da análise descritiva, outros são um pouco surpreendentes. Como observado a posição na empresa tem uma relação positiva com o salário e é significativa para o modelo. O efeito do sexo também foi significativo e o efeito para mulher é maior, ou seja é esperado que mulheres localizadas na média feminina(posição e experiência) ganhem mais que homens localizados na média masculina. Por fim os anos de experiência parecem não afetar o salário para as mulheres, pois seu parâmetro foi não significativo e para os os parece afetar negativamente.
 
 ```{r}
 salary.fit <- salary %>% lm(salary ~ -1 + sex +  pos_centrada:sex + exp_centrada:sex,.)
@@ -160,13 +160,13 @@ $\beta_{11}$ & -0,558 & 0,129 & [ -0,811 ; -0,305 ] & -4,326 & < 0.001\\
 
 ### Diagnóstico
 
-Observando os gráficos de resíduos na figura \ref{fig:diag1} não percedemos nenhuma evidência contra a indepêndencia dos dados ou contra a homocedásticidade. Porém através do histograma dos resíduos  e o gráfico quantil-quatil nota-se um pequena assimetria e também caudas mais pesadas, o que sugere que a suposição que os erros sigam uma normal não esteja correta.
+Observando os gráficos de resíduos na figura \ref{fig:diag1} não percebemos nenhuma evidência contra a independência dos dados ou contra a homoscedasticidade. Porém através do histograma dos resíduos  e o gráfico quantil-quatil nota-se um pequena assimetria e também caudas mais pesadas, o que sugere que a suposição que os erros sigam uma normal não esteja correta.
 
 ```{r diag1, fig.cap="\\label{fig:diag1}Diagnóstico do modelo inicial"}
 normal_diag(salary.fit)
 ```
 
-Em relaação a pontos influentes e alavancas, podemos notar na figura \ref{fig:influ1} que varios pontos são candidatos. Sendo eles as observações: 4,191,163, 30 e 148. Porém ao retirá-los individualmente e ajusatarmos o modelo novamente as conclusões não mudam e as estimativas praticamente não se alteram.
+Em relação a pontos influentes e alavancas, podemos notar na figura \ref{fig:influ1} que vários pontos são candidatos. Sendo eles as observações: 4,191,163, 30 e 148. Porém ao retirá-los individualmente e ajustarmos o modelo novamente as conclusões não mudam e as estimativas praticamente não se alteram.
 
 ```{r , fig.cap="\\label{fig:influ1} Análise de pontos influentes e alavancas para o modelo inicial", fig.height=3}
 cook_hat(salary.fit)
@@ -177,7 +177,7 @@ cook_hat(salary.fit)
 Como vimos que para o sexo feminino o efeito do tempo de experiência não era significativa vamos propor um novo modelo, reduzido, sem esse parâmetro. Seja $Y_{ij}$ o salário do j-ésimo executivo, para i = 0 (mulher), j = (1,2,...,75) e para i = 1 (homem), j = (1,2,...,145). Temos então o seguinte modelo:
 
 $$Y_{ij} = \alpha_i + \beta_{i0}*(x_{0ij}-\bar{x}_{0i}) + \beta_{11}*(x_{1ij} - \bar{x}_{1i} )+ \varepsilon_{ij}$$
-onde $x_{0ij}$ é a posição do j-ésimo executivo dado o sexo, $x_{1ij}$ é a experência do j-ésimo executivo dado o sexo. E $\alpha_i$ é o efeito do sexo no salário, $\beta_{i0}$ é o efeito da posição, dado o sexo, no salário e $\beta_{11}$ é o efeito da experiência para o sexo masculino no salário. Com a parte aleatória sendo $\varepsilon_i$.
+onde $x_{0ij}$ é a posição do j-ésimo executivo dado o sexo, $x_{1ij}$ é a experiência do j-ésimo executivo dado o sexo. E $\alpha_i$ é o efeito do sexo no salário, $\beta_{i0}$ é o efeito da posição, dado o sexo, no salário e $\beta_{11}$ é o efeito da experiência para o sexo masculino no salário. Com a parte aleatória sendo $\varepsilon_i$.
 
 Esse modelo é válido sobre as seguintes suposições: (i) $\varepsilon_i \stackrel{\text{i.i.d}}{\sim} N(0,\sigma^2)$; (ii) as observações são independentes; (iii) e a variância é constante.
 
@@ -189,7 +189,7 @@ tabela.reduzido <- salary.fit.reduzido %>% estimate_tibble() %>%
   kable_styling(font_size = 10)
 ```
 
-O novo modelo ajustado resulta no parametro da tabela \ref{tab:parred}, as estimativas e as conlusões se mantém similares ao do modelo inicial e agora todos os parâmetros são significátivos.
+O novo modelo ajustado resulta no parâmetro da tabela \ref{tab:parred}, as estimativas e as colusões se mantém similares ao do modelo inicial e agora todos os parâmetros são significativos.
 
 \begin{table}[t]
 
@@ -209,13 +209,13 @@ $\beta_{11}$ & -0,558 & 0,129 & [ -0,81 ; -0,305 ] & -4,332 & < 0.001\\
 \end{tabular}
 \end{table}
 
-Observando os gráficos de resíduos na figura \ref{fig:diag2} chegamos as mesmas conclusões que para o modelo inicial. Que as suposições de homcedásticidade e indepência são aceitaveis e a de normalidade não, que no caso do modelo reduzio pareceaté pior.
+Observando os gráficos de resíduos na figura \ref{fig:diag2} chegamos as mesmas conclusões que para o modelo inicial. Que as suposições de homoscedasticidade e indecência são aceitáveis e a de normalidade não, que no caso do modelo reduzido parece até pior.
 
 ```{r diag2, fig.cap="\\label{fig:diag2}Diagnóstico do modelo reduzido"}
 normal_diag(salary.fit.reduzido)
 ```
 
-Também similar ao modelo incial temos alguns candidatos a pontos influentes ou alavanca, observados na figura \ref{fig:influ2}, mas que também ao serem retirados não alteram muito as estimativas ou a conclusão.
+Também similar ao modelo inicial temos alguns candidatos a pontos influentes ou alavanca, observados na figura \ref{fig:influ2}, mas que também ao serem retirados não alteram muito as estimativas ou a conclusão.
 
 ```{r ,fig.cap="\\label{fig:influ2} Análise de pontos influentes e alavancas para o modelo reduzido", fig.height=3}
 cook_hat(salary.fit.reduzido)
@@ -223,7 +223,7 @@ cook_hat(salary.fit.reduzido)
 
 ## Comparações
 
-Através das medidas de comparação, vistas na tabela \ref{tab:medidas}, percebemos que para a maioria das medidas o modelo reduzido possue um valor mais baixo, então em teoria seria um modelo melhor.
+Através das medidas de comparação, vistas na tabela \ref{tab:medidas}, percebemos que para a maioria das medidas o modelo reduzido possuí um valor mais baixo, então em teoria seria um modelo melhor.
 
 ```{r}
 medidas <- cbind(model_measures(salary.fit),model_measures(salary.fit.reduzido)) %>%

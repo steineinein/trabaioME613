@@ -1,0 +1,261 @@
+---
+title: "Questão 3"
+output:
+  pdf_document:
+    fig_crop: no
+fontsize: 10pt
+sansfont: Times
+documentclass: article
+geometry: 
+ - a4paper
+ - textwidth=18cm
+ - textheight=21cm
+header-includes:
+  - \usepackage[utf8]{inputenc}
+  - \usepackage[brazil, english, portuguese]{babel}
+  - \usepackage[utf8]{inputenc}
+  - \usepackage[T1]{fontenc}
+  - \usepackage[fixlanguage]{babelbib}
+  - \usepackage{times}
+
+  - \usepackage{graphicx}
+  - \usepackage{wrapfig}
+  - \usepackage{pdfpages}
+  
+  - \usepackage{amsfonts}
+  - \usepackage{amssymb}
+  - \usepackage{amsmath}
+  
+  - \usepackage{fancyhdr}
+  - \usepackage{subcaption}
+  - \usepackage{booktabs}
+  - \usepackage{caption}
+  - \usepackage{float}
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, 
+  message = FALSE,
+  warning = FALSE,
+  tidy.opts = list(width.cutoff = 60),
+  tidy = TRUE,
+  digits=3
+  )
+options(
+  OutDec = ",", 
+  knitr.table.format = "latex", 
+  xtable.comment = FALSE
+  )
+ggplot2::theme_set(ggplot2::theme_bw())
+```
+
+```{r}
+library(tidyverse)
+library(magrittr)
+library(gridExtra)
+library(corrplot)
+library(ggfortify)
+library(broom)
+library(kableExtra)
+library(formattable)
+source("../diag_norm.R")
+source("../envel_norm.R")
+source("../norm_diag.R")
+source("../anainflu_norm.R")
+source("../cook_hat.R")
+source("../estimate_table.R")
+source("../model_measures.R")
+library(knitr)
+```
+
+# Introdução
+
+Um estudo da Faculdade de Medicina da USP sobre esforço cardiopulmonar em pacientes com insuficiência cardíaca tinha como objetivo comprar diferentes etiologias cardíacas quanto às respostas respiratórias e metabólicas. As etiologias cardíacas são: CH - chagásticos; ID - idiopáticos; IS = isquêmicos; e C - controle. O objetivo do nosso modelo é explicar a variação do consumo de oxigênio no limiar anaeróbico (ml/(kg.min)) em função da carga usada na esteira ergométrica. 
+
+Temos para a nossa análise dados de 118 pacientes que foram submetidos ao teste na esteira. Para tal análises será usada a metodologia dos modelos lineares homocedásticos, metodologias de verificação da qualidade do ajuste e comparação de modelos apropriado, veja Azevedo (2019). Todas as análises serão feitas com auxílio computacional do R.
+
+# Análise descritiva
+
+Pelas figuras \ref{fig:disptio} e \ref{fig:disp} observamos que a carga se relaciona com positivamente com o consumo e que uma reta parece modelar bem a relação. Olhando as etiologias individualmente vemos que individualmente uma reta para cada caso, quatro retas, parece também fazer sentido. Porém na figura \ref{fig:disp} sugere que talvez a relação entre o consumo e carga sejam as mesmas para todos os casos, ou seja apenas uma reta, seja uma suposição válida.
+
+
+```{r}
+coracao <- read_table("BragaPCR.txt", col_names = c("etiologia","carga","consumo")) %>% mutate(etiologia = factor(etiologia))
+```
+
+```{r ,fig.cap="\\label{fig:disptio} Gráfico de dispersão do consumo pela carga, separado por etiologias.", fig.height = 3.5}
+coracao %>% ggplot(aes(x = carga, y = consumo)) + facet_wrap(~ etiologia) + geom_point() 
+```
+
+```{r,fig.cap="\\label{fig:disp} Gráfico de dispersão geral.", fig.height=3.7}
+coracao %>% ggplot(aes(x = carga, y = consumo, shape = etiologia)) + geom_point()
+```
+
+# Análise Inferencial
+
+Primeiramente ajustaremos um modelo completo de regressão linear homocedástica, que considera a carga, a etiologia e a interação entre elas. O modelo será ajustado segundo o método dos mínimos quadrados ordinários e a significância de casa parâmetro será testada a partir de estatísticas, veja Azevedo(2019).
+
+Temos que $Y_i$ é o consumo da i-ésima observação, o modelo é
+$$Y_i = \beta_{0j} + \beta_1x_i + \beta_{2j}x_i + \varepsilon_i$$
+para i = (1,2,...,118) e j = (1,2,3,4). Onde $\beta_{0j}$ é o efeito devido a etiologia no consumo, com casela de referência em $\beta_{01}$, $\beta_1x_i$ é o feito da carga no consumo e $\beta_{2j}x_i$ é o efeito de interação da carga com etiologia no consumo, com casela de referência em $\beta_{21}$. Com a parte aleatória sendo $\varepsilon_i$.
+
+Esse modelo é válido sobre as seguintes suposições: (i) $\varepsilon_i \stackrel{\text{i.i.d}}{\sim} N(0,\sigma^2)$; (ii) as observações são independentes; (iii) e a variância é constante.
+
+O modelo foi segundo o método dos mínimos quadrados ordinários. O resultado pode ser visto na tabela \ref{tab:parComp}, os valores para o efeito da etiologia não foram significativos, o que confirma a nossa suspeita que talvez uma reta para todos os dados fosse mais apropriada que quatro retas. Essa análise do ajuste também está de acordo com o resultado da análise de variância, tabela \ref{tab:anovaA}, que também acusa a não significância dos efeitos da etiologia. As retas preditas podem ser vistas na figura \ref{fig:predict4} e realmente são bem similares.
+
+```{r}
+coracao.fit <- lm(consumo ~ carga*etiologia, coracao)
+parcomp <- coracao.fit %>% estimate_tibble() %>% 
+  kable("latex", booktabs = T, caption = "\\label{tab:parComp}Estimativa para os parâmetros do modelo completo.") %>%
+  kable_styling(font_size = 10)
+```
+
+\begin{table}[t]
+
+\caption{\label{tab:}\label{tab:parComp}Estimativa para os parâmetros do modelo completo.}
+\centering
+\fontsize{10}{12}\selectfont
+\begin{tabular}{lrrlrl}
+\toprule
+Termo & Estimativa & Erro Padrão & IC (95\%) & Estatística t & p-valor\\
+\midrule
+$\beta_{01}$ & 7,169 & 1,234 & [ 4,751 ; 9,587 ] & 5,811 & < 0.001\\
+$\beta_1$ & 0,102 & 0,011 & [ 0,08 ; 0,124 ] & 9,053 & < 0.001\\
+$\beta_{02}$ & -2,749 & 1,902 & [ -6,477 ; 0,979 ] & -1,445 & 0,151\\
+$\beta_{03}$ & -0,029 & 1,753 & [ -3,464 ; 3,406 ] & -0,017 & 0,987\\
+$\beta_{04}$ & 0,480 & 1,928 & [ -3,299 ; 4,259 ] & 0,249 & 0,804\\
+\addlinespace
+$\beta_{22}$ & 0,039 & 0,021 & [ -0,002 ; 0,081 ] & 1,856 & 0,066\\
+$\beta_{23}$ & -0,023 & 0,021 & [ -0,064 ; 0,017 ] & -1,128 & 0,262\\
+$\beta_{24}$ & -0,022 & 0,024 & [ -0,069 ; 0,026 ] & -0,891 & 0,375\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+```{r}
+anova.cor <- anova(coracao.fit)
+anovacomp <- anova.cor %>% broom::tidy() %>% mutate_if(is.numeric, funs(round(.,4))) %>%
+  magrittr::set_colnames(c("Fonte de variação", "Graus de liberdade",
+                           "Soma de quadrados", "Quadrados Médios",
+                           "Estatística","p-valor")) %>%
+  knitr::kable("latex", caption = "\\label{tab:anovaA}Análise de convariância para o modelo completo", booktabs = T) %>%
+  kableExtra::kable_styling(font_size = 10)
+```
+
+\begin{table}[t]
+
+\caption{\label{tab:}\label{tab:anovaA}Análise de convariância para o modelo completo}
+\centering
+\fontsize{10}{12}\selectfont
+\begin{tabular}{lrrrrr}
+\toprule
+Fonte de variação & Graus de liberdade & Soma de quadrados & Quadrados Médios & Estatística & p-valor\\
+\midrule
+$\beta_1$ & 1 & 1736,8158 & 1736,8158 & 249,2441 & 0,0000\\
+$\beta_0$ & 3 & 53,8421 & 17,9474 & 2,5756 & 0,0575\\
+$\beta_2$& 3 & 53,1662 & 17,7221 & 2,5432 & 0,0599\\
+Resíduos & 110 & 766,5165 & 6,9683 & NA & NA\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+```{r, fig.cap="\\label{fig:predict4} Valores preditos do modelo completo e os dados originais.", fig.height = 3.5}
+coracao %>% mutate(fit = fitted(coracao.fit)) %>% ggplot() + geom_point(aes(x = carga, y = consumo, shape = etiologia)) + geom_line(aes(x = carga, y = fit, linetype = etiologia))
+```
+
+A análise de resíduos se encontra na figura \ref{fig:diagComp}, reparamos nela que a suposições de homoscedasticidade e de normalidade dos dados não são válidas. No gráfico de resíduos por valor ajustado vemos uma variância crescer, no histograma e no gráfico quantil-quantil vemos uma assimetria dos resíduos. A análise de pontos influentes nos dá alguns candidatos, a observação 32 e 40. A retirada desses pontos altera bastante a estimativa e altera nossa inferência e conclusões. A retirada do ponto 32 deixa o efeito etiologia significativo para um nível e a retirada do ponto 40 deixa o efeito da etiologia menos significativo.
+
+```{r, fig.cap="\\label{fig:diagComp} Diagnóstico do modelo completo"}
+normal_diag(coracao.fit)
+```
+
+```{r, fig.cap="\\label{fig:influComp} Análise de influência e alavanca para o modelo completo", fig.height = 3.5}
+cook_hat(coracao.fit)
+```
+
+Como vimos que o efeito da etiologia não é significativo vamos ajustar um modelo reduzido:
+
+$$Y_i = \beta_1 + \beta_1x_i + \varepsilon_i$$
+onde $Y_i$ é o consumo da i-ésima observação, para i = (1,2,...,118) e j = (1,2,3,4). E $\beta_{0}$ é o consumo quando não há carga, $\beta_1x_i$ é o feito da carga no consumo e parte aleatória é $\varepsilon_i$. Esse modelo é válido sobre as seguintes suposições: (i) $\varepsilon_i \stackrel{\text{i.i.d}}{\sim} N(0,\sigma^2)$; (ii) as observações são independentes; (iii) e a variância é constante. O resultado do seu ajuste pode ser visto na tabela \ref{tab:parRed}, todos os parâmetros são significativos e vemos que os seu valores não se alteraram muito do modelo completo. Na tabela \ref{tab:anovaR} vemos o resultado da análise de variância que nos diz que há regressão. Observando a reta ajustada e o intervalo de predição, figura \ref{fig:ajustado}, o modelo parece se ajustar bem aos dados.
+
+Observando a análise de resíduos na figura \ref{fig:diagRed}, vemos os mesmo problemas do modelo completo heterocedasticidade e a ausência de normalidade. Na figura \ref{fig:influRed} ainda temos candidatos a pontos influentes ou de alavanca, mas a retirada dos mesmos não afeta mais que 5% as nossas estimativas e não muda a conclusão.
+
+```{r}
+coracao.fit.reduzido <- lm(consumo ~ carga, coracao)
+```
+
+```{r}
+tabred <- coracao.fit.reduzido %>% estimate_tibble() %>% 
+  kable("latex", booktabs = T, caption = "\\label{tab:parRed}Estimativa para os parâmetros do modelo reduzido.") %>%
+  kable_styling(font_size = 10)
+```
+
+\begin{table}[t]
+
+\caption{\label{tab:}\label{tab:parRed}Estimativa para os parâmetros do modelo reduzido.}
+\centering
+\fontsize{10}{12}\selectfont
+\begin{tabular}{lrrlrl}
+\toprule
+Termo & Estimativa & Erro Padrão & IC (95\%) & Estatística t & p-valor\\
+\midrule
+$\beta_0$ & 6,140 & 0,625 & [ 4,915 ; 7,365 ] & 9,823 & < 0.001\\
+$\beta_1$ & 0,109 & 0,007 & [ 0,095 ; 0,123 ] & 15,187 & < 0.001\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+```{r}
+anova.cor.red <- anova(coracao.fit.reduzido)
+anovared <- anova.cor.red %>% broom::tidy() %>% mutate_if(is.numeric, funs(round(.,4))) %>%
+  magrittr::set_colnames(c("Fonte de variação", "Graus de liberdade",
+                           "Soma de quadrados", "Quadrados Médios",
+                           "Estatística","p-valor")) %>%
+  knitr::kable("latex", caption = "\\label{tab:anovaR}Análise de convariância para o modelo reduzido.", booktabs = T) %>%
+  kableExtra::kable_styling(font_size = 10)
+```
+
+\begin{table}[t]
+
+\caption{\label{tab:}\label{tab:anovaR}Análise de convariância para o modelo reduzido.}
+\centering
+\fontsize{10}{12}\selectfont
+\begin{tabular}{lrrrrr}
+\toprule
+Fonte de variação & Graus de liberdade & Soma de quadrados & Quadrados Médios & Estatística & p-valor\\
+\midrule
+$\beta_1$ & 1 & 1736,8158 & 1736,8158 & 230,641 & 0\\
+Resíduos & 116 & 873,5247 & 7,5304 & NA & NA\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+```{r, fig.cap="\\label{fig:ajustado} Valores preditos e intervalo de predição para o modelo reduzido", fig.height = 3.5}
+coracao %>% mutate(fit = fitted(coracao.fit.reduzido),
+                   upper = predict(coracao.fit.reduzido, se.fit = T, interval = "prediction")$fit[,3],
+                   lower = predict(coracao.fit.reduzido, se.fit = T, interval = "prediction")$fit[,2]) %>% ggplot() + geom_point(aes(x = carga, y = consumo, shape = etiologia)) +
+  geom_line(aes(x = carga, y = fit)) +
+  geom_ribbon(aes(x = carga, ymin = lower, ymax = upper), alpha = 0.3)
+```
+
+```{r, fig.cap="\\label{fig:diagRed} Diagnóstico do modelo reduzido."}
+normal_diag(coracao.fit.reduzido)
+```
+
+```{r, fig.cap="\\label{fig:influRed} Análise de influência e alavanca para o modelo reduzido.", fig.height = 3.5}
+cook_hat(coracao.fit.reduzido)
+```
+
+# Conclusão
+
+Pelo resultado dos ajustes dos modelos, o que afeta o consumo de oxigênio aparenta ser apenas a carga e não a etiologia. Porém vimos que os modelos ajustados não são apropriados e quebraram várias suposições, por isso é provável que as inferências não estejam corretas. Deveriam ser feito mais análises considerando-se um modelo mais apropriado, que comporte a heterocedasticidade e a não normalidade dos dados. Por exemplo, adequar a uma regressão com variáveis positivas, com o modelo gamma ou normal inversa .Também para o modelo completo detectamos pontos influentes, por isso deve-se conversar com o pesquisador a respeito dessas observações e de como tratá-las, para propor um modelo que considere melhor esses pontos.
+
+\pagebreak
+
+# Referências
+
+Azevedo, C. L. N (2019). Notas de aula sobre Análise de regressão, http://www.ime.unicamp.br/~cnaber/Material_ME613_1S_2019.htm
+
+Paula, G. A. (2013). Modelos de regressão com apoio computacional, versão pré-eliminar, https://www.ime.usp.br/~giapaula/texto_2013.pdf
