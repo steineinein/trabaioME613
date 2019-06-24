@@ -770,7 +770,7 @@ $\beta_1$ & [1,47 ; 1,53] & 0,97 & 0,95 & 100 & d \\
 
 ```{r echo=FALSE, results = "hide"}
 # Realiza os Testes de Hipoteses CBeta = M
-source('~/Downloads/Testes Cbeta.r')
+source("Funcoes Auxiliares Reg 1S 2019.R")
 C <- matrix(c(1, 0 ,0, 1), ncol = 2, nrow = 2)
 M <- c(1, 1.5)
 cbeta.testn30a <- list()
