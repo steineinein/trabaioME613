@@ -250,7 +250,7 @@ cook_hat(coracao.fit.reduzido)
 
 # Conclusão
 
-Pelo resultado dos ajustes dos modelos, o que afeta o consumo de oxigênio aparenta ser apenas a carga e não a etiologia. Porém vimos que os modelos ajustados não são apropriados e quebraram várias suposições, por isso é provável que as inferências não estejam corretas. Deveriam ser feito mais análises considerando-se um modelo mais apropriado, que comporte a heterocedasticidade e a não normalidade dos dados. Também para o modelo completo detectamos pontos influentes, por isso deve-se conversar com o pesquisador a respeito dessas observações e de como tratá-las, para propor um modelo que considere melhor esses pontos.
+Pelo resultado dos ajustes dos modelos, o que afeta o consumo de oxigênio aparenta ser apenas a carga e não a etiologia. Porém vimos que os modelos ajustados não são apropriados e quebraram várias suposições, por isso é provável que as inferências não estejam corretas. Deveriam ser feito mais análises considerando-se um modelo mais apropriado, que comporte a heterocedasticidade e a não normalidade dos dados. Por exemplo, adequar a uma regressão com variáveis positivas, com o modelo gamma ou normal inversa .Também para o modelo completo detectamos pontos influentes, por isso deve-se conversar com o pesquisador a respeito dessas observações e de como tratá-las, para propor um modelo que considere melhor esses pontos.
 
 \pagebreak
 
