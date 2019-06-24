@@ -53,11 +53,28 @@ ggplot2::theme_set(ggplot2::theme_bw())
 ```{r, include=FALSE}
 options(tinytex.verbose = TRUE)
 ```
-\section{Questão 8}
 
-$$Y_i = \beta _0 + \beta _1 (x_i - \overline{x}) + \xi _i $$
-\subsection{Item (a)}
-$$\xi_i \overset{\small{iid}}{\sim} \cal{N} (0, 4)$$
+\textbullet \textbf{Item a}
+$\quad \xi_i \overset{\small{iid}}{\sim} \cal{N} (\text{0}, \text{4})$
+
+\begin{table}
+\centering
+\resizebox{14.5cm}{!}{
+\begin{tabular}{cccccc}
+Parâmetros & Interv.(95\%) amostral & Prop. IC(95\%) lm() &  Prop. Test. Hipot.  & Tamanho amostral & Item \\
+\hline
+$\beta_0$ & [-0,49 ; 2,54] & 0,97 & 0,04 & 30 & a \\
+$\beta_0$ & [0,04 ; 2,08] & 0,96 & 0,03 & 50 & a \\
+$\beta_0$ & [0,26 ; 1,63] & 0,98 & 0,03 & 100 & a \\
+$\beta_1$ & [1,24 ; 1,79] & 0,32 & 0,04 & 30 & a \\
+$\beta_1$ & [1,27 ; 1,76] & 0,06 & 0,04 & 50 & a \\
+$\beta_1$ & [1,30 ; 1,70] & 0,00 & 0,03 & 100 & a \\
+\hline
+\end{tabular}
+}
+\caption{Intervalo de 95\% dos quantis amostrais, proporções de IC's 95\% resultado da função lm() que contém o verdadeiro valor do parâmetro e proporção de testes de hipóteses que rejeitam $H_0$}
+\end{table}
+
 ```{r}
 x30 <- runif(30, 5, 20) # Gera os valores de X para uma amostra de tamanho 30
 x30.mean <- mean(x30) # Calcula a média de X para uma amostra de tamanho 30
@@ -145,15 +162,15 @@ for (i in 1:100) {
 }
 ```
 
-```{r}
+```{r, fig.cap="\\label{Dist.a}Distribuições amostrais das estimativas dos parâmetros do item a", fig.height=4, fig.pos='htb!'}
 # Gera os histogramas das estimativas dos parâmetros
 par(mfrow = c(2,3))
 hist(beta030a, main = "Estimativas do Beta0 (n=30)", xlab = "Estimativas do Beta0", ylab = "Frequência")
 hist(beta050a, main = "Estimativas do Beta0 (n=50)", xlab = "Estimativas do Beta0", ylab = "Frequência")
 hist(beta0100a, main = "Estimativas do Beta0 (n=100)", xlab = "Estimativas do Beta0", ylab = "Frequência")
-hist(beta130a, main = "Estimativas do Beta0 (n=30)", xlab = "Estimativas do Beta1", ylab = "Frequência")
-hist(beta150a, main = "Estimativas do Beta0 (n=50)", xlab = "Estimativas do Beta1", ylab = "Frequência")
-hist(beta1100a, main = "Estimativas do Beta0 (n=100)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+hist(beta130a, main = "Estimativas do Beta1 (n=30)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+hist(beta150a, main = "Estimativas do Beta1 (n=50)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+hist(beta1100a, main = "Estimativas do Beta1 (n=100)", xlab = "Estimativas do Beta1", ylab = "Frequência")
 ```
 
 
@@ -216,33 +233,39 @@ icbeta1.n100a <- quantile(beta1100a, probs = c(0.025, 0.975))
 
 ```{r}
 # Calcula a proporção de IC's que contém o verdadeiro valor do parâmetro
+library(dplyr)
 prop.cibeta030a <- cibeta030a %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
 prop.cibeta050a <- cibeta050a %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
 prop.cibeta0100a <- cibeta0100a %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
-prop.cibeta130a <- cibeta130a %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
-prop.cibeta150a <- cibeta150a %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
-prop.cibeta1100a <- cibeta1100a %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta130a <- cibeta130a %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1.5 & `97,5%` > 1.5, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta150a <- cibeta150a %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1.5 & `97,5%` > 1.5, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta1100a <- cibeta1100a %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1.5 & `97,5%` > 1.5, 1,0)) %>% pull(contem) %>% mean()
 ```
+
+Considerando os resultados mostrados na Figura 1 nota-se assimetria nas distribuições das estimativas, porém há uma concentração das estimativas em torno dos verdadeiros valores dos parâmetros, com uma maior variabilidade das estimativas do $\beta_ \text{0}$ fato também observado nos intervalos de frequências de 95\% presentes na coluna \textit{Interv.(95\%) amostral} da Tabela 1. Obtemos que os intervalos de confiança (IC's) gerados pela função lm() foram satifatórios considerando as estimativas do  $\beta_ \text{0}$, contudo nas estimativas do $\beta_ \text{1}$ os resultados foram absurdamente incompatíveis com o esperado, como mostrado na coluna \textit{Prop. IC(95\%) lm()} dado que estes resultados foram obtidos ajustando-se o modelo sob as suposições de normalidade, homocedásticidade e independência dos erros. A partir da coluna \textit{Prop. Test. Hipot.} podemos concluir que em todos os casos os testes de hipótese $C \beta = M$ foram satisfatórios com seus níveis de significância de 5\%. 
+
+\textbullet \textbf{Item b}
+$\cal{V}(\xi_\text{i}) = \sigma^\text{2}\text{x}_\text{i}$
 
 \begin{table}
 \centering
-\begin{tabular}{ccc}
-Parâmetros & IC(95\%) & Tamanho amostral \\
+\resizebox{14.5cm}{!}{
+\begin{tabular}{cccccc}
+Parâmetros & Interv.(95\%) amostral & Prop. IC(95\%) lm() &  Prop. Test. Hipot.  & Tamanho amostral & Item \\
 \hline
-$\beta_0$ & [-0,49 ; 2,54] & 30 \\
-$\beta_0$ & [0,04 ; 2,08] & 50 \\
-$\beta_0$ & [0,26 ; 1,63] & 100 \\
-$\beta_1$ & [1,24 ; 1,79] & 30 \\
-$\beta_1$ & [1,27 ; 1,76] & 50 \\
-$\beta_1$ & [1,30 ; 1,70] & 100 \\
+$\beta_0$ & [-14,43 ; 25,21] & 0,93 & 0,09 & 30 & b \\
+$\beta_0$ & [-14,21 ; 14,56] & 0,93 & 0,07 & 50 & b \\
+$\beta_0$ & [-8,57 ; 11,23] & 0,97 & 0,05 & 100 & b \\
+$\beta_1$ & [-2,59 ; 5,91] & 0,92 & 0,09 & 30 & b \\
+$\beta_1$ & [-2,98 ; 5,18] & 0,98 & 0,07 & 50 & b \\
+$\beta_1$ & [-1,45 ; 3,97] & 0,96 & 0,05 & 100 & b \\
 \hline
 \end{tabular}
+}
+\caption{Intervalos de 95\% dos quantis amostrais, proporções de IC's 95\% resultado da função lm() que contém o verdadeiro valor do parâmetro e proporção de testes de hipóteses que rejeitam $H_0$}
 \end{table}
 
-\subsection{Item b}
-$$\cal{V}(\xi_i) = \sigma^2x_i$$
-
-```{r}
+```{r, echo=FALSE}
 # Gera os valores de Y para uma amostra de tamanho 30
 y30b <- matrix(nrow = 30, ncol = 100)
 for (i in 1:100) {
@@ -269,7 +292,7 @@ colnames(y50b) <- paste("y50b", 1:100, sep = "")
 colnames(y100b) <- paste("y100b", 1:100, sep = "")
 ```
 
-```{r}
+```{r echo=FALSE}
 # Ajusta todos os modelos da simulação para as amostras de tamanho 30
 mnih30b <- list()
 for (i in 1:100) {
@@ -289,7 +312,7 @@ for (i in 1:100) {
 }
 ```
 
-```{r}
+```{r echo=FALSE}
 # Armazena as estimativas dos parâmetros para as amostras de tamanho 30
 beta030b <- c()
 beta130b <- c()
@@ -315,15 +338,15 @@ for (i in 1:100) {
 }
 ```
 
-```{r}
+```{r, fig.cap="\\label{Dist.b}Distribuições amostrais das estimativas dos parâmetros do item b", fig.height=4, fig.pos='htb!'}
 # Gera os histogramas das estimativas dos parâmetros
 par(mfrow = c(2,3))
 hist(beta030b, main = "Estimativas do Beta0 (n=30)", xlab = "Estimativas do Beta0", ylab = "Frequência")
 hist(beta050b, main = "Estimativas do Beta0 (n=50)", xlab = "Estimativas do Beta0", ylab = "Frequência")
 hist(beta0100b, main = "Estimativas do Beta0 (n=100)", xlab = "Estimativas do Beta0", ylab = "Frequência")
-hist(beta130b, main = "Estimativas do Beta0 (n=30)", xlab = "Estimativas do Beta1", ylab = "Frequência")
-hist(beta150b, main = "Estimativas do Beta0 (n=50)", xlab = "Estimativas do Beta1", ylab = "Frequência")
-hist(beta1100b, main = "Estimativas do Beta0 (n=100)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+hist(beta130b, main = "Estimativas do Beta1 (n=30)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+hist(beta150b, main = "Estimativas do Beta1 (n=50)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+hist(beta1100b, main = "Estimativas do Beta1 (n=100)", xlab = "Estimativas do Beta1", ylab = "Frequência")
 ```
 
 ```{r}
@@ -388,28 +411,33 @@ icbeta1.n100b <- quantile(beta1100b, probs = c(0.025, 0.975))
 prop.cibeta030b <- cibeta030b %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
 prop.cibeta050b <- cibeta050b %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
 prop.cibeta0100b <- cibeta0100b %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
-prop.cibeta130b <- cibeta130b %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
-prop.cibeta150b <- cibeta150b %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
-prop.cibeta1100b <- cibeta1100b %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta130b <- cibeta130b %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1.5 & `97,5%` > 1.5, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta150b <- cibeta150b %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1.5 & `97,5%` > 1.5, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta1100b <- cibeta1100b %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1.5 & `97,5%` > 1.5, 1,0)) %>% pull(contem) %>% mean()
 ```
+
+Com base nos dados mostrados na Figura 2 observa-se assimetria nas distribuições, bem como não há uma concentração das estimativas em torno dos verdadeiros valores dos parâmetros para as estimativas do $\beta_ \text{0}$ e também com a semelhante maior variabilidade, fato também observado nos intervalos de frequências de 95\% presentes na coluna \textit{Interv.(95\%) amostral} da Tabela 2. Obtemos que os IC's gerados pela função lm() foram satifatórios para ambos os parâmetros, considerando as amostras de tamanho 100 e a estimativa do $\beta_ \text{1}$ com amostra de tamanho 50, como mostrado na coluna \textit{Prop. IC(95\%) lm()}. A partir da coluna \textit{Prop. Test. Hipot.} podemos concluir que apenas os testes de hipótese $C \beta = M$ para amostras de tamanho 100 foram compatíveis com seus níveis de significância de 5\%. 
+
+\textbullet \textbf{Item c}
+$\xi_i \overset{\small{iid}}{\sim} t_{(6)}$
 
 \begin{table}
 \centering
-\begin{tabular}{ccc}
-Parâmetros & IC(95\%) & Tamanho amostral \\
+\resizebox{14.5cm}{!}{
+\begin{tabular}{cccccc}
+Parâmetros & Interv.(95\%) amostral & Prop. IC(95\%) lm() &  Prop. Test. Hipot.  & Tamanho amostral & Item \\
 \hline
-$\beta_0$ & [-14,43 ; 25,21] & 30 \\
-$\beta_0$ & [-14,21 ; 14,56] & 50 \\
-$\beta_0$ & [-8,57 ; 11,23] & 100 \\
-$\beta_1$ & [-2,59 ; 5,91] & 30 \\
-$\beta_1$ & [-2,98 ; 5,18] & 50 \\
-$\beta_1$ & [-1,45 ; 3,97] & 100 \\
+$\beta_0$ & [2,35 ; 3,28] & 0,00 & 1 & 30 & c \\
+$\beta_0$ & [2,38 ; 3,13] & 0,00 & 1 & 50 & c \\
+$\beta_0$ & [2,47 ; 2,96] & 0,00 & 1 & 100 & c \\
+$\beta_1$ & [1,35 ; 1,61] & 0,96 & 1 & 30 & c \\
+$\beta_1$ & [1,42 ; 1,57] & 0,94 & 1 & 50 & c \\
+$\beta_1$ & [1,44 ; 1,57] & 0,92 & 1 & 100 & c \\
 \hline
 \end{tabular}
+}
+\caption{Intervalos de 95\% dos quantis amostrais, proporções de IC's 95\% resultado da função lm() que contém o verdadeiro valor do parâmetro e proporção de testes de hipóteses que rejeitam $H_0$}
 \end{table}
-
-\subsection{Item c}
-$$\xi_i \overset{\small{iid}}{\sim} t_{(6)}$$
 
 ```{r}
 # Gera os valores de Y para uma amostra de tamanho 30
@@ -484,15 +512,15 @@ for (i in 1:100) {
 }
 ```
 
-```{r}
+```{r, fig.cap="\\label{Dist.c}Distribuições amostrais das estimativas dos parâmetros do item c", fig.height=4, fig.pos='htb!'}
 # Gera os histogramas das estimativas dos parâmetros
 par(mfrow = c(2,3))
 hist(beta030c, main = "Estimativas do Beta0 (n=30)", xlab = "Estimativas do Beta0", ylab = "Frequência")
 hist(beta050c, main = "Estimativas do Beta0 (n=50)", xlab = "Estimativas do Beta0", ylab = "Frequência")
 hist(beta0100c, main = "Estimativas do Beta0 (n=100)", xlab = "Estimativas do Beta0", ylab = "Frequência")
-hist(beta130c, main = "Estimativas do Beta0 (n=30)", xlab = "Estimativas do Beta1", ylab = "Frequência")
-hist(beta150c, main = "Estimativas do Beta0 (n=50)", xlab = "Estimativas do Beta1", ylab = "Frequência")
-hist(beta1100c, main = "Estimativas do Beta0 (n=100)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+hist(beta130c, main = "Estimativas do Beta1 (n=30)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+hist(beta150c, main = "Estimativas do Beta1 (n=50)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+hist(beta1100c, main = "Estimativas do Beta1 (n=100)", xlab = "Estimativas do Beta1", ylab = "Frequência")
 ```
 
 ```{r}
@@ -557,33 +585,21 @@ icbeta1.n100c <- quantile(beta1100c, probs = c(0.025, 0.975))
 prop.cibeta030c <- cibeta030c %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
 prop.cibeta050c <- cibeta050c %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
 prop.cibeta0100c <- cibeta0100c %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
-prop.cibeta130c <- cibeta130c %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
-prop.cibeta150c <- cibeta150c %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
-prop.cibeta1100c <- cibeta1100c %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta130c <- cibeta130c %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1.5 & `97,5%` > 1.5, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta150c <- cibeta150c %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1.5 & `97,5%` > 1.5, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta1100c <- cibeta1100c %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1.5 & `97,5%` > 1.5, 1,0)) %>% pull(contem) %>% mean()
 ```
 
-\begin{table}
-\centering
-\begin{tabular}{ccc}
-Parâmetros & IC(95\%) & Tamanho amostral \\
-\hline
-$\beta_0$ & [2,35 ; 3,28] & 30 \\
-$\beta_0$ & [2,38 ; 3,13] & 50 \\
-$\beta_0$ & [2,47 ; 2,96] & 100 \\
-$\beta_1$ & [1,35 ; 1,61] & 30 \\
-$\beta_1$ & [1,42 ; 1,57] & 50 \\
-$\beta_1$ & [1,44 ; 1,57] & 100 \\
-\hline
-\end{tabular}
-\end{table}
+Segundo as informações contidas na Figura 3 nota-se assimetria nos histogramas. Junto a isso há uma concentração das estimativas em torno dos verdadeiros valores dos parâmetros. Continua presente a semelhante maior variabilidade das estimativas do $\beta_ \text{0}$, também observada nos intervalos de frequências de 95\% presentes na coluna \textit{Interv.(95\%) amostral} da Tabela 3. Notável como os IC's gerados pela função lm() foram insatifatórios para o parâmetro $\beta_ \text{0}$ como mostrado na coluna \textit{Prop. IC(95\%) lm()}, adicionado dos dados da coluna \textit{Prop. Test. Hipot.} em que nenhum dos testes de hipótese $C \beta = M$ foi capaz de julgar a favor da hipótese nula, este último resultado consequentemente por causa das estimativas do $\beta_ \text{0}$. 
 
-\subsection{Item d}
-$$\cal{V}(\xi_\text{i}) = \text{4} \quad \text{e} \quad \text{Corre}(\xi_\text{i}, \ \xi_\text{j}) = \text{0,90} \quad \text{para} \quad \text{i}  \neq \text{j} $$
+\textbullet \textbf{Item d}
+$\quad \cal{V}(\xi_\text{i}) = \text{4} \quad \text{e} \quad \text{Corre}(\xi_\text{i}, \ \xi_\text{j}) = \text{0,90} \quad \text{para} \quad \text{i} \neq \text{j}$
+
 ```{r}
 # Gera os vetores de médias
-mu.30 <- rep(0, times=30)
-mu.50 <- rep(0, times=50)
-mu.100 <- rep(0, times=100)
+#mu.30 <- rep(0, times=30)
+#mu.50 <- rep(0, times=50)
+#mu.100 <- rep(0, times=100)
 
 # Gera as matrizes de variâncias e covariâncias
 var.cov.matrix.n30 <- matrix(3.6, nrow = 30, ncol = 30)
@@ -595,11 +611,11 @@ diag(var.cov.matrix.n100) <- 4
 
 # Gera os 100 valores de Y para uma normal multivariada com vetor de médias e matriz de covariâncias dadas acima
 library(MASS)
-y30d <- mvrnorm(100, mu.30, var.cov.matrix.n30)
+y30d <- mvrnorm(100, 1+ 1.5*dif.x30.x30mean, var.cov.matrix.n30)
 y30d <- t(y30d)
-y50d <- mvrnorm(100, mu.50, var.cov.matrix.n50)
+y50d <- mvrnorm(100, 1+ 1.5*dif.x50.x50mean, var.cov.matrix.n50)
 y50d <- t(y50d)
-y100d <- mvrnorm(100, mu.100, var.cov.matrix.n100)
+y100d <- mvrnorm(100, 1+ 1.5*dif.x100.x100mean, var.cov.matrix.n100)
 y100d <- t(y100d)
 ```
 
@@ -656,15 +672,15 @@ for (i in 1:100) {
 }
 ```
 
-```{r}
+```{r, fig.cap= c("\\label{Dist.d}Distribuições amostrais das estimativas dos parâmetros do item d"), fig.height=4, fig.pos='htb!'}
 # Gera os histogramas das estimativas dos parâmetros
 par(mfrow = c(2,3))
 hist(beta030d, main = "Estimativas do Beta0 (n=30)", xlab = "Estimativas do Beta0", ylab = "Frequência")
 hist(beta050d, main = "Estimativas do Beta0 (n=50)", xlab = "Estimativas do Beta0", ylab = "Frequência")
 hist(beta0100d, main = "Estimativas do Beta0 (n=100)", xlab = "Estimativas do Beta0", ylab = "Frequência")
-hist(beta130d, main = "Estimativas do Beta0 (n=30)", xlab = "Estimativas do Beta1", ylab = "Frequência")
-hist(beta150d, main = "Estimativas do Beta0 (n=50)", xlab = "Estimativas do Beta1", ylab = "Frequência")
-hist(beta1100d, main = "Estimativas do Beta0 (n=100)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+hist(beta130d, main = "Estimativas do Beta1 (n=30)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+hist(beta150d, main = "Estimativas do Beta1 (n=50)", xlab = "Estimativas do Beta1", ylab = "Frequência")
+hist(beta1100d, main = "Estimativas do Beta1 (n=100)", xlab = "Estimativas do Beta1", ylab = "Frequência")
 ```
 
 ```{r}
@@ -729,23 +745,209 @@ icbeta1.n100d <- quantile(beta1100d, probs = c(0.025, 0.975))
 prop.cibeta030d <- cibeta030d %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
 prop.cibeta050d <- cibeta050d %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
 prop.cibeta0100d <- cibeta0100d %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
-prop.cibeta130d <- cibeta130d %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
-prop.cibeta150d <- cibeta150d %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
-prop.cibeta1100d <- cibeta1100d %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1 & `97,5%` > 1, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta130d <- cibeta130d %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1.5 & `97,5%` > 1.5, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta150d <- cibeta150d %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1.5 & `97,5%` > 1.5, 1,0)) %>% pull(contem) %>% mean()
+prop.cibeta1100d <- cibeta1100d %>% as_tibble() %>% mutate(contem = if_else(`2,5%` < 1.5 & `97,5%` > 1.5, 1,0)) %>% pull(contem) %>% mean()
 ```
 
 \begin{table}
 \centering
-\begin{tabular}{ccc}
-Parâmetros & IC(95\%) & Tamanho amostral \\
+\resizebox{14.5cm}{!}{
+\begin{tabular}{cccccc}
+Parâmetros & Interv.(95\%) amostral & Prop. IC(95\%) lm() &  Prop. Test. Hipot.  & Tamanho amostral & Item \\
 \hline
-$\beta_0$ & [-3,93 ; 3,02] & 30 \\
-$\beta_0$ & [-4,95 ; 3,31] & 50 \\
-$\beta_0$ & [-4,23 ; 3,54] & 100 \\
-$\beta_1$ & [-0,05 ; 0,06] & 30 \\
-$\beta_1$ & [-0,04 ; 0,04] & 50 \\
-$\beta_1$ & [-0,03 ; 0,03] & 100 \\
+$\beta_0$ & [-2,46 ; 5,38] & 0,07 & 0,94 & 30 & d \\
+$\beta_0$ & [-2,89 ; 4,06] & 0,12 & 0,92 & 50 & d \\
+$\beta_0$ & [-2,54 ; 4,32] & 0,03 & 0,95 & 100 & d \\
+$\beta_1$ & [1,45 ; 1,55] & 0,98 & 0,94 & 30 & d \\
+$\beta_1$ & [1,46 ; 1,53] & 0,98 & 0,92 & 50 & d \\
+$\beta_1$ & [1,47 ; 1,53] & 0,97 & 0,95 & 100 & d \\
 \hline
 \end{tabular}
+}
+\caption{Intervalos de 95\% dos quantis amostrais, proporções de IC's 95\% resultado da função lm() que contém o verdadeiro valor do parâmetro e proporção de testes de hipóteses que rejeitam $H_0$}
 \end{table}
+
+```{r echo=FALSE, results = "hide"}
+# Realiza os Testes de Hipoteses CBeta = M
+source('~/Downloads/Testes Cbeta.r')
+C <- matrix(c(1, 0 ,0, 1), ncol = 2, nrow = 2)
+M <- c(1, 1.5)
+cbeta.testn30a <- list()
+for (i in 1:100) {
+  cbeta.testn30a[[i]] <- testeF.CBM(mnih30a[[i]], C, M)
+}
+
+cbeta.testn50a <- list()
+for (i in 1:100) {
+  cbeta.testn50a[[i]] <- testeF.CBM(mnih50a[[i]], C, M)
+}
+
+cbeta.testn100a <- list()
+for (i in 1:100) {
+  cbeta.testn100a[[i]] <- testeF.CBM(mnih100a[[i]], C, M)
+}
+
+cbeta.testn30b <- list()
+for (i in 1:100) {
+  cbeta.testn30b[[i]] <- testeF.CBM(mnih30b[[i]], C, M)
+}
+
+cbeta.testn50b <- list()
+for (i in 1:100) {
+  cbeta.testn50b[[i]] <- testeF.CBM(mnih50b[[i]], C, M)
+}
+
+cbeta.testn100b <- list()
+for (i in 1:100) {
+  cbeta.testn100b[[i]] <- testeF.CBM(mnih100b[[i]], C, M)
+}
+
+cbeta.testn30c <- list()
+for (i in 1:100) {
+  cbeta.testn30c[[i]] <- testeF.CBM(mnih30c[[i]], C, M)
+}
+
+cbeta.testn50c <- list()
+for (i in 1:100) {
+  cbeta.testn50c[[i]] <- testeF.CBM(mnih50c[[i]], C, M)
+}
+
+cbeta.testn100c <- list()
+for (i in 1:100) {
+  cbeta.testn100c[[i]] <- testeF.CBM(mnih100c[[i]], C, M)
+}
+
+cbeta.testn30d <- list()
+for (i in 1:100) {
+  cbeta.testn30d[[i]] <- testeF.CBM(mnih30d[[i]], C, M)
+}
+
+cbeta.testn50d <- list()
+for (i in 1:100) {
+  cbeta.testn50d[[i]] <- testeF.CBM(mnih50d[[i]], C, M)
+}
+
+cbeta.testn100d <- list()
+for (i in 1:100) {
+  cbeta.testn100d[[i]] <- testeF.CBM(mnih100d[[i]], C, M)
+}
+```
+
+```{r echo=FALSE}
+# Armazena os p-valores dos testes CBeta = M
+pvaluen30a <- c()
+for (i in 1:100) {
+  pvaluen30a[i] <- cbeta.testn30a[[i]][1]
+}
+
+pvaluen50a <- c()
+for (i in 1:100) {
+  pvaluen50a[i] <- cbeta.testn50a[[i]][1]
+}
+
+pvaluen100a <- c()
+for (i in 1:100) {
+  pvaluen100a[i] <- cbeta.testn100a[[i]][1]
+}
+
+pvaluen30b <- c()
+for (i in 1:100) {
+  pvaluen30b[i] <- cbeta.testn30b[[i]][1]
+}
+
+pvaluen50b <- c()
+for (i in 1:100) {
+  pvaluen50b[i] <- cbeta.testn50b[[i]][1]
+}
+
+pvaluen100b <- c()
+for (i in 1:100) {
+  pvaluen100b[i] <- cbeta.testn100b[[i]][1]
+}
+
+pvaluen30c <- c()
+for (i in 1:100) {
+  pvaluen30c[i] <- cbeta.testn30c[[i]][1]
+}
+
+pvaluen50c <- c()
+for (i in 1:100) {
+  pvaluen50c[i] <- cbeta.testn50c[[i]][1]
+}
+
+pvaluen100c <- c()
+for (i in 1:100) {
+  pvaluen100c[i] <- cbeta.testn100c[[i]][1]
+}
+
+pvaluen30d <- c()
+for (i in 1:100) {
+  pvaluen30d[i] <- cbeta.testn30d[[i]][1]
+}
+
+pvaluen50d <- c()
+for (i in 1:100) {
+  pvaluen50d[i] <- cbeta.testn50d[[i]][1]
+}
+
+pvaluen100d <- c()
+for (i in 1:100) {
+  pvaluen100d[i] <- cbeta.testn100d[[i]][1]
+}
+```
+
+```{r echo=FALSE}
+## Calcula a proporção de p-valores que rejeitão H0 no teste CBeta = M intem a
+prop.pvalue30a <- c()
+prop.pvalue30a <- length(pvaluen30a[pvaluen30a < 0.05])/length(pvaluen30a)
+
+prop.pvalue50a <- c()
+prop.pvalue50a <- length(pvaluen50a[pvaluen50a < 0.05])/length(pvaluen50a)
+
+prop.pvalue100a <- c()
+prop.pvalue100a <- length(pvaluen100a[pvaluen100a < 0.05])/length(pvaluen100a)
+```
+
+```{r}
+## Calcula a proporção de p-valores que rejeitão H0 no teste CBeta = M intem b
+prop.pvalue30b <- c()
+prop.pvalue30b <- length(pvaluen30b[pvaluen30b < 0.05])/length(pvaluen30b)
+
+prop.pvalue50b <- c()
+prop.pvalue50b <- length(pvaluen50b[pvaluen50b < 0.05])/length(pvaluen50b)
+
+prop.pvalue100b <- c()
+prop.pvalue100b <- length(pvaluen100b[pvaluen100b < 0.05])/length(pvaluen100b)
+```
+
+```{r}
+## Calcula a proporção de p-valores que rejeitão H0 no teste CBeta = M intem c
+prop.pvalue30c <- c()
+prop.pvalue30c <- length(pvaluen30c[pvaluen30c < 0.05])/length(pvaluen30c)
+
+prop.pvalue50c <- c()
+prop.pvalue50c <- length(pvaluen50c[pvaluen50c < 0.05])/length(pvaluen50c)
+
+prop.pvalue100c <- c()
+prop.pvalue100c <- length(pvaluen100c[pvaluen100c < 0.05])/length(pvaluen100c)
+```
+
+```{r}
+## Calcula a proporção de p-valores que rejeitão H0 no teste CBeta = M intem d
+prop.pvalue30d <- c()
+prop.pvalue30d <- length(pvaluen30d[pvaluen30d < 0.05])/length(pvaluen30d)
+
+prop.pvalue50d <- c()
+prop.pvalue50d <- length(pvaluen50d[pvaluen50d < 0.05])/length(pvaluen50d)
+
+prop.pvalue100d <- c()
+prop.pvalue100d <- length(pvaluen100d[pvaluen100d < 0.05])/length(pvaluen100d)
+```
+
+Tendo em vista os resultados mostrados na Figura 4 observa-se assimetria nas distribuições das estimativas de ambos os parâmetros. Contudo há uma concentração das estimativas em torno dos verdadeiros valores dos parâmetros. Permanece presente a semelhante maior variabilidade das estimativas do $\beta_ \text{0}$, também observada nos intervalos de frequências de 95\% presentes na coluna \textit{Interv.(95\%) amostral} da Tabela 4. Como no item anterior os IC's gerados pela função lm() foram insatifatórios para o parâmetro $\beta_ \text{0}$, nota-se pela coluna \textit{Prop. IC(95\%) lm()}, adicionado dos dados da coluna \textit{Prop. Test. Hipot.} em que a grande maioria dos testes de hipótese $C \beta = M$ julgaram contra a hipótese nula.  
+
+#Em um análise geral dos resultados podemos concluir que mesmo o modelo ajustado segundo as suposições de normalidade, independência #e homocedásticidade não apresenta boas estimativas pontuais para $\beta_ \text{1}$, a violação da suposição de homocedásticidade #garantiu boas estimativas, mas em contrapartida a variabilidade das mesmas mostrou-se muito grande tornando-a um investimento de #alto risco, assim como a violação das suposições de normalidade e independência foram as que mais afetaram o ajuste do modelo.
+
+
 
